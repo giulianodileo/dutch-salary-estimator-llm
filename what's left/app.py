@@ -14,7 +14,7 @@ except ImportError:
 
 # Import the init_chat_model function for the Gemini model
 try:
-    from some_module import init_chat_model  # Replace 'some_module' with the actual module name
+    from langchain.chat_models import init_chat_model  # Replace 'some_module' with the actual module name
 except ImportError:
     st.sidebar.error("⚠️ Could not import init_chat_model. Ensure the correct module is installed.")
     HAS_LLM = False
