@@ -19,7 +19,7 @@ class JobPosting(BaseModel):
     seniority: Optional[str] = None
     salary: Optional[str] = None
     source_url: str
-    site: str
+    source_site: str
 
 class JobsPage(BaseModel):
     jobs: List[JobPosting]
@@ -156,7 +156,7 @@ def scrape_glassdoor_salaries_by_experience(
                 seniority=label,
                 salary=last_headline,          # ← titular verde tal cual
                 source_url=page.url,
-                site="GLASSDOR"
+                source_site="glassdoor"
             ))
 
         browser.close()
@@ -195,15 +195,15 @@ def extract_from_inputs(
 if __name__ == "__main__":
     URLS = [
         "https://www.glassdoor.nl/Salarissen/nederland-data-scientist-salarissen-SRCH_IL.0,9_IN178_KO10,24.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-data-analyst-salarissen-SRCH_IL.0,9_IN178_KO10,22.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-data-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,23.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-software-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,27.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-cloud-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,24.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-ai-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,21.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-frontend-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,27.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-backend-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,26.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-devops-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,25.htm",
-        # "https://www.glassdoor.nl/Salarissen/nederland-security-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,27.htm"
+        "https://www.glassdoor.nl/Salarissen/nederland-data-analyst-salarissen-SRCH_IL.0,9_IN178_KO10,22.htm",
+        "https://www.glassdoor.nl/Salarissen/nederland-data-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,23.htm",
+        "https://www.glassdoor.nl/Salarissen/nederland-software-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,27.htm",
+        "https://www.glassdoor.nl/Salarissen/nederland-cloud-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,24.htm",
+        "https://www.glassdoor.nl/Salarissen/nederland-ai-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,21.htm",
+        "https://www.glassdoor.nl/Salarissen/nederland-frontend-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,27.htm",
+        "https://www.glassdoor.nl/Salarissen/nederland-backend-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,26.htm",
+        "https://www.glassdoor.nl/Salarissen/nederland-devops-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,25.htm",
+        "https://www.glassdoor.nl/Salarissen/nederland-security-engineer-salarissen-SRCH_IL.0,9_IN178_KO10,27.htm"
 
         # agrega más URLs aquí (50+ sin problema; va secuencial)""
     ]
@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))   # .../whatsleft
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)                  # sube a .../<repo-root>
-RAW_DIR      = os.path.join(PROJECT_ROOT, "data")       # .../<repo-root>/raw_data
+RAW_DIR      = os.path.join(PROJECT_ROOT, "data")       # .../<repo-root>/data
 os.makedirs(RAW_DIR, exist_ok=True)                         # crea si no existe
 
 data = [r.model_dump() for r in results]
