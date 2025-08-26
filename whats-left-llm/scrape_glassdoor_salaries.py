@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))   # .../whatsleft
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)                  # sube a .../<repo-root>
-RAW_DIR      = os.path.join(PROJECT_ROOT, "raw_data")       # .../<repo-root>/raw_data
+RAW_DIR      = os.path.join(PROJECT_ROOT, "data")       # .../<repo-root>/raw_data
 os.makedirs(RAW_DIR, exist_ok=True)                         # crea si no existe
 
 data = [r.model_dump() for r in results]
