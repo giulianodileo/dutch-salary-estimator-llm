@@ -3,7 +3,7 @@
     "currency": "EUR",
     "ref_year": "2025",
     "period": "monthly",
-    "avg_amount": 157,
+    "avg_amount": 157.0,
     "source_url": "https://www.rijksoverheid.nl/onderwerpen/zorgverzekering/vraag-en-antwoord/premie-zorgverzekering",
-    "source_site": "rijksoverheid.nl"
+    "source_site": "rijksoverheid"
   }
