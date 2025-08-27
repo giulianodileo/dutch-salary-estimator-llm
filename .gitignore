@@ -1,6 +1,4 @@
 raw_data/
-<<<<<<< HEAD
-models/
-=======
->>>>>>> master
 .env
+models/
+notebooks/
