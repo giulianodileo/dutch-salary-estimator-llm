@@ -106,7 +106,7 @@ def parse_rent_table(html: str, source_url: str) -> RentTable:
 def save_to_raw_data(obj: BaseModel, filename: str = "scrape_rental_house.json") -> str:
     script_dir   = os.path.dirname(os.path.abspath(__file__))  # .../whatsleft
     project_root = os.path.dirname(script_dir)                 # subir 1 nivel (repo root)
-    raw_dir      = os.path.join(project_root, "raw_data")
+    raw_dir      = os.path.join(project_root, "data")
     os.makedirs(raw_dir, exist_ok=True)
     out_path = os.path.join(raw_dir, filename)
     with open(out_path, "w", encoding="utf-8") as f:
