@@ -7,7 +7,8 @@
     "min_amount": 900,
     "max_amount": 1800,
     "avg_amount": 1350.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "Amsterdam",
@@ -17,7 +18,8 @@
     "min_amount": 1500,
     "max_amount": 2500,
     "avg_amount": 2000.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "Amsterdam",
@@ -27,7 +29,8 @@
     "min_amount": 2000,
     "max_amount": 3500,
     "avg_amount": 2750.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "Rotterdam",
@@ -37,7 +40,8 @@
     "min_amount": 800,
     "max_amount": 1500,
     "avg_amount": 1150.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "Rotterdam",
@@ -47,7 +51,8 @@
     "min_amount": 1200,
     "max_amount": 2000,
     "avg_amount": 1600.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "Rotterdam",
@@ -57,7 +62,8 @@
     "min_amount": 1500,
     "max_amount": 2600,
     "avg_amount": 2050.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "Utrecht",
@@ -67,7 +73,8 @@
     "min_amount": 900,
     "max_amount": 1400,
     "avg_amount": 1150.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "Utrecht",
@@ -77,7 +84,8 @@
     "min_amount": 1300,
     "max_amount": 2200,
     "avg_amount": 1750.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "Utrecht",
@@ -87,7 +95,8 @@
     "min_amount": 1500,
     "max_amount": 2800,
     "avg_amount": 2150.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "The Hague",
@@ -97,7 +106,8 @@
     "min_amount": 750,
     "max_amount": 1300,
     "avg_amount": 1025.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "The Hague",
@@ -107,7 +117,8 @@
     "min_amount": 1200,
     "max_amount": 1900,
     "avg_amount": 1550.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   },
   {
     "city": "The Hague",
@@ -117,6 +128,7 @@
     "min_amount": 1500,
     "max_amount": 2400,
     "avg_amount": 1950.0,
-    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/"
+    "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+    "source_site": "renthunter.nl"
   }
 ]
