@@ -1,10 +1,11 @@
 import json
 import re
 from pathlib import Path
+from urllib.parse import urlparse
 
 # --- 1) Paths ---
-input_path = Path("/Users/andresgentile/Desktop/dutch-salary-estimator-llm/data/scrape_rental_house.json")
-output_path = Path("data/clean_data/cleaning_rental_house.json")
+input_path = Path("/Users/andresgentile/code/giulianodileo/dutch-salary-estimator-llm/data/scrape_rental_house.json")
+output_path = Path("/Users/andresgentile/code/giulianodileo/dutch-salary-estimator-llm/data/clean_data/cleaning_rental_house.json")
 
 # --- 2) Cargar el JSON scrapeado ---
 with open(input_path, "r", encoding="utf-8") as f:
@@ -23,6 +24,10 @@ def transform(data: dict):
         "one_bedroom_per_month": "one_bedroom",
         "two_bedroom_per_month": "two_bedroom",
     }
+    # 👇 sacar el dominio de la URL
+    source_url = data["source_url"]
+    source_site = urlparse(source_url).netloc
+
     out_rows = []
     for row in data["rows"]:
         for k, accomodation in mapping.items():
@@ -39,7 +44,8 @@ def transform(data: dict):
                 "min_amount": lo,
                 "max_amount": hi,
                 "avg_amount": avg,
-                "source_url": data["source_url"],
+                "source_url": source_url,
+                "source_site": source_site   # 👈 agregado aquí
             })
     return out_rows
 
