@@ -1,0 +1,15 @@
+[
+    {
+        "position": "Teacher",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 1000000.0,
+            "avg_amount": 3000000.0,
+            "max_amount": 5000000.0
+        },
+        "source_url": "https://www.glassdoor.nl/Salarissen/nederland-data-scientist-salarissen-SRCH_IL.0,9_IN178_KO10,24.htm",
+        "source_site": "glassdoor"
+    }
+  ]
