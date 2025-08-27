@@ -24,6 +24,10 @@ def transform(data: dict):
         "one_bedroom_per_month": "one_bedroom",
         "two_bedroom_per_month": "two_bedroom",
     }
+    # 👇 sacar el dominio de la URL
+    source_url = data["source_url"]
+    source_site = urlparse(source_url).netloc
+
     out_rows = []
 
     # 👇 sacar el dominio de la URL

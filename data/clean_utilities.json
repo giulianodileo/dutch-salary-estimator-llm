@@ -1,0 +1,23 @@
+[
+    {
+        "category": "Gas",
+        "value": 110.0,
+        "period": "monthly",
+        "year": 2025,
+        "source_url": "https://www.nibud.nl/onderwerpen/uitgaven/kosten-energie-water/"
+    },
+    {
+        "category": "Electricity",
+        "value": 54.5,
+        "period": "monthly",
+        "year": 2025,
+        "source_url": "https://www.nibud.nl/onderwerpen/uitgaven/kosten-energie-water/"
+    },
+    {
+        "category": "Water",
+        "value": 25.9,
+        "period": "monthly",
+        "year": 2025,
+        "source_url": "https://www.nibud.nl/onderwerpen/uitgaven/kosten-energie-water/"
+    }
+]
