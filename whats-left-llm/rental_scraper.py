@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # pip install -qU langchain-community
-
+# pip install pdfplumber
 
 
 """

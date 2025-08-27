@@ -1,0 +1,81 @@
+[
+  {
+    "source_url": "https://www.nibud.nl/onderwerpen/uitgaven/autokosten",
+    "currency": "EUR",
+    "period": "monthly",
+    "data": [
+      {
+        "class_name": "mini",
+        "fixed_costs": {
+          "total": 193.0,
+          "depreciation_time": 84.0,
+          "insurance": 54.0,
+          "motor_vehicle_tax": 30.0,
+          "maintenance": 25.0
+        },
+        "variable_costs": {
+          "total": 158.5,
+          "depreciation_kms": 31.5,
+          "maintenance_and_repair": 44.5,
+          "fuel": 82.5
+        },
+        "total_per_month": 351.5,
+        "average_km_per_year": 8500
+      },
+      {
+        "class_name": "compact",
+        "fixed_costs": {
+          "total": 252.5,
+          "depreciation_time": 123.0,
+          "insurance": 62.5,
+          "motor_vehicle_tax": 43.5,
+          "maintenance": 23.5
+        },
+        "variable_costs": {
+          "total": 190.0,
+          "depreciation_kms": 41.5,
+          "maintenance_and_repair": 52.5,
+          "fuel": 96.0
+        },
+        "total_per_month": 442.5,
+        "average_km_per_year": 9000
+      },
+      {
+        "class_name": "small_middle",
+        "fixed_costs": {
+          "total": 346.0,
+          "depreciation_time": 170.0,
+          "insurance": 82.0,
+          "motor_vehicle_tax": 69.5,
+          "maintenance": 25.0
+        },
+        "variable_costs": {
+          "total": 241.0,
+          "depreciation_kms": 57.0,
+          "maintenance_and_repair": 63.0,
+          "fuel": 121.0
+        },
+        "total_per_month": 587.5,
+        "average_km_per_year": 11000
+      },
+      {
+        "class_name": "middle",
+        "fixed_costs": {
+          "total": 386.5,
+          "depreciation_time": 194.5,
+          "insurance": 87.5,
+          "motor_vehicle_tax": 80.0,
+          "maintenance": 24.5
+        },
+        "variable_costs": {
+          "total": 263.0,
+          "depreciation_kms": 66.0,
+          "maintenance_and_repair": 77.0,
+          "fuel": 120.0
+        },
+        "total_per_month": 649.5,
+        "average_km_per_year": 11000
+      }
+    ]
+  }
+]
