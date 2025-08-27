@@ -13,7 +13,7 @@
   {
     "city": "Amsterdam",
     "accomodation": "studio",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 900.0,
     "max_amount": 1800.0,
@@ -24,7 +24,7 @@
   {
     "city": "Amsterdam",
     "accomodation": "one_bedroom",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 1500.0,
     "max_amount": 2500.0,
@@ -35,7 +35,7 @@
   {
     "city": "Amsterdam",
     "accomodation": "two_bedroom",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 2000.0,
     "max_amount": 3500.0,
@@ -46,7 +46,7 @@
   {
     "city": "Rotterdam",
     "accomodation": "studio",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 800.0,
     "max_amount": 1500.0,
@@ -68,7 +68,7 @@
   {
     "city": "Rotterdam",
     "accomodation": "one_bedroom",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 1200.0,
     "max_amount": 2000.0,
@@ -79,7 +79,7 @@
   {
     "city": "Rotterdam",
     "accomodation": "two_bedroom",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 1500.0,
     "max_amount": 2600.0,
@@ -90,7 +90,7 @@
   {
     "city": "Utrecht",
     "accomodation": "studio",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 900.0,
     "max_amount": 1400.0,
@@ -101,7 +101,7 @@
   {
     "city": "Utrecht",
     "accomodation": "one_bedroom",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 1300.0,
     "max_amount": 2200.0,
@@ -112,7 +112,7 @@
   {
     "city": "Utrecht",
     "accomodation": "two_bedroom",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 1500.0,
     "max_amount": 2800.0,
@@ -134,7 +134,7 @@
   {
     "city": "The Hague",
     "accomodation": "studio",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 750.0,
     "max_amount": 1300.0,
@@ -145,7 +145,7 @@
   {
     "city": "The Hague",
     "accomodation": "one_bedroom",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 1200.0,
     "max_amount": 1900.0,
@@ -156,7 +156,7 @@
   {
     "city": "The Hague",
     "accomodation": "two_bedroom",
-    "period": "month",
+    "period": "monthly",
     "currency": "EUR",
     "min_amount": 1500.0,
     "max_amount": 2400.0,
