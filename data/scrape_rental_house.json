@@ -1,0 +1,30 @@
+{
+  "source_url": "https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/",
+  "scraped_at": "2025-08-26T14:13:15Z",
+  "rows": [
+    {
+      "city": "Amsterdam",
+      "studio_per_month": "€900-€1800",
+      "one_bedroom_per_month": "€1500-€2500",
+      "two_bedroom_per_month": "€2000-€3500"
+    },
+    {
+      "city": "Rotterdam",
+      "studio_per_month": "€800-€1500",
+      "one_bedroom_per_month": "€1200-€2000",
+      "two_bedroom_per_month": "€1,500-€2600"
+    },
+    {
+      "city": "Utrecht",
+      "studio_per_month": "€900-€1400",
+      "one_bedroom_per_month": "€1300-€2200",
+      "two_bedroom_per_month": "€1500-€2800"
+    },
+    {
+      "city": "The Hague",
+      "studio_per_month": "€750-€1300",
+      "one_bedroom_per_month": "€1200-€1900",
+      "two_bedroom_per_month": "€1500-€2400"
+    }
+  ]
+}

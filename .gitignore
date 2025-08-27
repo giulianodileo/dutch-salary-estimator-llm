@@ -1,2 +1,4 @@
 raw_data/
-.envgit
+.env
+models/
+notebooks/
