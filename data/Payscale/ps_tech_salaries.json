@@ -1,0 +1,314 @@
+[
+    {
+        "position": "Backend Engineer",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 2920.0,
+            "avg_amount": 3420.0,
+            "max_amount": 5830.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Back_End_Developer%2F_Engineer/Salary/885c2de8/Early-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Backend Engineer",
+        "seniority": "mid-level",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3170.0,
+            "avg_amount": 5420.0,
+            "max_amount": 8500.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Back_End_Developer%2F_Engineer/Salary/78e1afd0/Mid-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Backend Engineer",
+        "seniority": "senior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": null,
+            "avg_amount": 6330.0,
+            "max_amount": null
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Back_End_Developer%2F_Engineer/Salary/9f4dfa33/Experienced",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Analyst",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 2920.0,
+            "avg_amount": 3830.0,
+            "max_amount": 5420.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Analyst/Salary/01cd0898/Early-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Analyst",
+        "seniority": "mid-level",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3670.0,
+            "avg_amount": 4830.0,
+            "max_amount": 6170.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Analyst/Salary/1e283078/Mid-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Analyst",
+        "seniority": "senior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3250.0,
+            "avg_amount": 5170.0,
+            "max_amount": 6750.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Analyst/Salary/69c7df38/Experienced",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Scientist",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 2920.0,
+            "avg_amount": 4000.0,
+            "max_amount": 5670.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Scientist/Salary/66c296ce/Early-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Scientist",
+        "seniority": "mid-level",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3920.0,
+            "avg_amount": 5080.0,
+            "max_amount": 7580.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Scientist/Salary/176b7682/Mid-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Scientist",
+        "seniority": "senior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 5170.0,
+            "avg_amount": 6920.0,
+            "max_amount": 7580.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Scientist/Salary/b8a6498d/Experienced",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Engineer",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 2750.0,
+            "avg_amount": 4080.0,
+            "max_amount": 5670.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Engineer/Salary/4b1fe314/Early-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Engineer",
+        "seniority": "mid-level",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 4000.0,
+            "avg_amount": 5080.0,
+            "max_amount": 5830.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Engineer/Salary/1eadd5f9/Mid-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Data Engineer",
+        "seniority": "senior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 4420.0,
+            "avg_amount": 5500.0,
+            "max_amount": 7750.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Data_Engineer/Salary/6573bec6/Experienced",
+        "source_site": "payscale"
+    },
+    {
+        "position": "DevOps Engineer",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3000.0,
+            "avg_amount": 4250.0,
+            "max_amount": 5500.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Development_Operations_(DevOps)_Engineer/Salary/0a254828/Early-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "DevOps Engineer",
+        "seniority": "mid-level",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3670.0,
+            "avg_amount": 5330.0,
+            "max_amount": 6670.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Development_Operations_(DevOps)_Engineer/Salary/a4e3664f/Mid-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "DevOps Engineer",
+        "seniority": "senior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 4250.0,
+            "avg_amount": 5920.0,
+            "max_amount": 7580.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Development_Operations_(DevOps)_Engineer/Salary/bf0c5f79/Experienced",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Frontend Engineer",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 2500.0,
+            "avg_amount": 3500.0,
+            "max_amount": 5330.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Front_End_Developer_%2F_Engineer/Salary/ea22a1a1/Early-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Frontend Engineer",
+        "seniority": "mid-level",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3500.0,
+            "avg_amount": 5000.0,
+            "max_amount": 7170.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Front_End_Developer_%2F_Engineer/Salary/646df80c/Mid-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Frontend Engineer",
+        "seniority": "senior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3330.0,
+            "avg_amount": 4830.0,
+            "max_amount": 7580.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Front_End_Developer_%2F_Engineer/Salary/9da6bdec/Experienced",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Security Engineer",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 2500.0,
+            "avg_amount": 4830.0,
+            "max_amount": 5830.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Security_Engineer/Salary/0108b7bf/Early-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Security Engineer",
+        "seniority": "mid-level",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3170.0,
+            "avg_amount": 5080.0,
+            "max_amount": 6750.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Security_Engineer/Salary/faa029f1/Mid-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Security Engineer",
+        "seniority": "senior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 5420.0,
+            "avg_amount": 6670.0,
+            "max_amount": 8000.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Security_Engineer/Salary/63ba72d9/Experienced",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Software Engineer",
+        "seniority": "junior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 2920.0,
+            "avg_amount": 4000.0,
+            "max_amount": 6000.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Software_Engineer/Salary/c2c49a35/Early-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Software Engineer",
+        "seniority": "mid-level",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3670.0,
+            "avg_amount": 5080.0,
+            "max_amount": 7500.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Software_Engineer/Salary/35417996/Mid-Career",
+        "source_site": "payscale"
+    },
+    {
+        "position": "Software Engineer",
+        "seniority": "senior",
+        "compensation": {
+            "currency": "EUR",
+            "period": "monthly",
+            "min_amount": 3830.0,
+            "avg_amount": 5580.0,
+            "max_amount": 8250.0
+        },
+        "source_url": "https://www.payscale.com/research/NL/Job=Software_Engineer/Salary/0ddc8bd9/Experienced",
+        "source_site": "payscale"
+    }
+]
