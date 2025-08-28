@@ -1,15 +1,18 @@
 # Dutch Salary-to-Reality Calculator Prototype (Enhanced)
 
+# -------------------- LIBRARIES --------------------
+
+# pip install langgraph
+# pip install "unstructured[md]
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import re
 from pathlib import Path
-# pip install langgraph
+from langchain_core.prompts import ChatPromptTemplate
 
 # Import LangChain tools (salary calc)
 from tools import get_gross_salary, calculate_income_tax, deduct_expenses
-
 # Import LangChain (Gemini chat + embeddings)
 try:
     from langchain.chat_models import init_chat_model
@@ -26,6 +29,17 @@ try:
 except ImportError:
     st.sidebar.error("⚠️ Could not import LangChain Google GenAI modules. Check your installation.")
     HAS_LLM = False
+
+from dotenv import load_dotenv
+import os
+
+# --- load .env first ---
+load_dotenv()
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+if not GOOGLE_API_KEY:
+    st.sidebar.error("⚠️ GOOGLE_API_KEY not found. Please add it to your .env file.")
+
 
 # -------------------- CONFIG --------------------
 st.set_page_config(
@@ -49,25 +63,43 @@ def load_llm():
 llm = load_llm()
 
 # -------------------- RAG SETUP --------------------
+import asyncio
+from langchain_community.document_loaders import TextLoader
+
 @st.cache_resource(show_spinner=True)
 def load_vector_store():
     """Load and index Markdown docs for RAG once at startup."""
     try:
+        # Ensure event loop exists (Streamlit thread hack)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
         BASE_DIR = Path(__file__).resolve().parent
-        DATA_DIR = BASE_DIR / "data" / "RAG"
+        DATA_DIR = BASE_DIR.parent / "data" / "RAG"
 
-        loader = DirectoryLoader(str(DATA_DIR), glob="*.md")
-        docs = loader.load()
+        # Load Markdown files with TextLoader
+        docs = []
+        for md_file in DATA_DIR.glob("*.md"):
+            loader = TextLoader(str(md_file), encoding="utf-8")
+            docs.extend(loader.load())
 
+        # Split into chunks
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200
         )
         all_splits = text_splitter.split_documents(docs)
 
+        # Embed + store
         embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
         vector_store = InMemoryVectorStore(embeddings)
         vector_store.add_documents(all_splits)
+
+        # Debug info in sidebar
+        st.sidebar.info(f"RAG initialized with {len(docs)} docs → {len(all_splits)} chunks")
 
         return vector_store
     except Exception as e:
@@ -76,9 +108,23 @@ def load_vector_store():
 
 vector_store = load_vector_store()
 
+
 # -------------------- RAG CHAIN --------------------
 if HAS_LLM and llm and vector_store:
-    prompt = hub.pull("rlm/rag-prompt")
+
+    rag_prompt = ChatPromptTemplate.from_messages([
+
+    ("system",
+     "You are a specialized assistant helping professionals in the Netherlands "
+     "understand salaries, taxes, housing, transportation, and related costs. "
+     "You only answer using the provided context (retrieved documents). "
+     "If the context does not contain the answer, explicitly say you don't know. "
+     "Use simple words when interacting with the user."
+     "Keep answers concise (max 3 sentences), factual, and insightful."
+     "Always cite the filename of the document(s) you used in parentheses at the end."),
+    ("human", "Question: {question}\n\nContext:\n{context}\n\nAnswer:")
+    ])
+
 
     class State(TypedDict):
         question: str
@@ -90,10 +136,17 @@ if HAS_LLM and llm and vector_store:
         return {"context": retrieved_docs}
 
     def generate(state: State):
-        docs_content = "\n\n".join(doc.page_content for doc in state["context"])
-        messages = prompt.invoke({"question": state["question"], "context": docs_content})
+        docs_content = "\n\n".join(
+            f"[{Path(doc.metadata.get('source', 'unknown')).name}] {doc.page_content}"
+            for doc in state["context"]
+        )
+        messages = rag_prompt.invoke({
+            "question": state["question"],
+            "context": docs_content
+        })
         response = llm.invoke(messages)
         return {"answer": response.content}
+
 
     graph_builder = StateGraph(State).add_sequence([retrieve, generate])
     graph_builder.add_edge(START, "retrieve")
