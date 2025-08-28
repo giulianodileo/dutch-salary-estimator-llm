@@ -146,7 +146,7 @@ if submitted:
         m2.metric("Rent (avg)",   f"€{out['rent']['avg']:,.0f}")
         m3.metric("Car / month",  f"€{out['car_total_per_month']:,.0f}")
         m4.metric("Essential Living Costs", f"€{out['essential_costs']:,.0f}")
-        m5.metric("Your Net Salary after Tax", f"€{return_net_incomee:,.0f}" )
+        m5.metric("Your Net Salary after Tax", f"€{return_net_incomee/12:,.0f}" )
         # m4.metric("Salary (max)", f"€{out['salary']['max']:,.0f}")
 
         # ---- Details con tabs: Inputs / Extra / Outputs ----
