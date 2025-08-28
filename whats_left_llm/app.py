@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.express as px
 import re
 
+<<<<<<< HEAD
 # Attempt to import the LLM package
 try:
     from llama_cpp import Llama
@@ -17,6 +18,17 @@ try:
     from langchain.chat_models import init_chat_model  # Replace 'some_module' with the actual module name
 except ImportError:
     st.sidebar.error("⚠️ Could not import init_chat_model. Ensure the correct module is installed.")
+=======
+# Import LangChain tools
+from tools import get_gross_salary, calculate_income_tax, deduct_expenses
+
+# Import the init_chat_model function (Gemini)
+try:
+    from langchain.chat_models import init_chat_model
+    HAS_LLM = True
+except ImportError:
+    st.sidebar.error("⚠️ Could not import init_chat_model. Ensure LangChain and Google GenAI integration are installed.")
+>>>>>>> master
     HAS_LLM = False
 
 # -------------------- CONFIG & THEME --------------------
@@ -29,6 +41,7 @@ st.set_page_config(
 
 # -------------------- LLM SETUP --------------------
 @st.cache_resource(show_spinner=True)
+<<<<<<< HEAD
 def load_llm(local=False):
     if not HAS_LLM:
         return None
@@ -39,10 +52,18 @@ def load_llm(local=False):
         else:
             # Load the remote Gemini model
             return init_chat_model("gemini-2.5-flash", model_provider="google_genai")
+=======
+def load_llm():
+    if not HAS_LLM:
+        return None
+    try:
+        return init_chat_model("gemini-2.5-flash", model_provider="google_genai")
+>>>>>>> master
     except Exception as e:
         st.sidebar.error(f"⚠️ Could not load LLM: {e}")
         return None
 
+<<<<<<< HEAD
 # Set local to True or False based on your preference
 llm = load_llm(local=False)  # Change to True if you want to load the local model
 
@@ -66,10 +87,20 @@ def render_salary_charts(net, city, leftover):
     df = pd.DataFrame({
         "Category": ["Net Salary", "Essential Costs", "Disposable Income"],
         "Amount": [net, ESSENTIALS[city], leftover]
+=======
+llm = load_llm()
+
+# -------------------- VISUALIZATION --------------------
+def render_salary_charts(net, city, leftover, expenses):
+    df = pd.DataFrame({
+        "Category": ["Net Salary", "Essential Costs", "Disposable Income"],
+        "Amount": [net, expenses, leftover]
+>>>>>>> master
     })
 
     col1, col2 = st.columns(2)
     with col1:
+<<<<<<< HEAD
         st.plotly_chart(
             px.bar(df, x="Category", y="Amount", color="Category", title="Breakdown")
         )
@@ -87,6 +118,18 @@ def llm_answer(question: str):
     try:
         output = llm(prompt, max_tokens=400, stop=["\n"])  # Adjust max_tokens as needed
         return output["choices"][0]["text"].strip() if "choices" in output and output["choices"] else "⚠️ No answer available."
+=======
+        st.plotly_chart(px.bar(df, x="Category", y="Amount", color="Category", title="Breakdown"))
+    with col2:
+        st.plotly_chart(px.pie(df, values="Amount", names="Category", title="Salary Distribution"))
+
+# -------------------- SIMPLE LLM WRAPPER --------------------
+def llm_answer(question: str):
+    if not HAS_LLM or not llm:
+        return "⚠️ LLM not available. Please install LangChain + Google GenAI."
+    try:
+        return llm.invoke(question).content
+>>>>>>> master
     except Exception as e:
         return f"⚠️ An error occurred while getting the answer: {e}"
 
@@ -99,6 +142,7 @@ if page == "💶 Salary Calculator":
     st.title("💶 Dutch Salary-to-Reality Calculator")
 
     # User Profile Input
+<<<<<<< HEAD
     user_name = st.sidebar.text_input("Enter your name:", "")
     if user_name:
         st.sidebar.success(f"Welcome, {user_name}!")
@@ -119,6 +163,50 @@ if page == "💶 Salary Calculator":
         st.metric("💸 What's Left", f"€{leftover:,.0f}")
 
         render_salary_charts(net, location, leftover)
+=======
+    user_name = st.sidebar.text_input("What's your name?", "")
+    if user_name:
+        st.sidebar.success(f"Welcome, {user_name}! 😎")
+
+    job = st.sidebar.selectbox("What is your job?", [
+        "Backend Engineer",
+        "Data Analyst",
+        "Data Scientist",
+        "Data Engineer",
+        "DevOps Engineer",
+        "Frontend Engineer",
+        "Security Engineer",
+        "Software Engineer",
+    ])
+
+    seniority = st.sidebar.selectbox("What is your seniority?", ["Junior", "Mid-Level", "Senior"])
+    city = st.sidebar.selectbox("Where are you planning to live?", ["Amsterdam", "Rotterdam", "Utrecht", "Eindhoven", "Groningen"])
+
+    if st.sidebar.button("Calculate"):
+        # 1. Gross salary (from tool)
+        gross = get_gross_salary.invoke({"job_title": job, "seniority": seniority})
+
+        if gross == 0:
+            st.error("No salary data available for that combination.")
+        else:
+            # 2. Apply tax tool
+            tax_result = calculate_income_tax.invoke({"gross_salary": gross})
+            net = tax_result["net_after_tax"]
+
+            # 3. Deduct expenses tool
+            expense_result = deduct_expenses.invoke({"net_salary": net, "city": city})
+            leftover = expense_result["remaining"]
+            expenses = expense_result["expenses"]
+
+            # 4. Display results
+            st.subheader(f"What you can expect as a {seniority} {job} in the Netherlands if you want to live in {city}")
+            st.metric("Your Gross Salary would be around", f"€{gross:,.0f}")
+            st.metric("Your Net Salary (after tax) could be around", f"€{net:,.0f}")
+            st.metric("Essential Living Costs", f"€{expenses:,.0f}")
+            st.metric("💸 What's Left", f"€{leftover:,.0f}")
+
+            render_salary_charts(net, city, leftover, expenses)
+>>>>>>> master
 
 # -------------------- PAGE 2: LLM CHAT --------------------
 elif page == "🤖 LLM Chat":
@@ -131,6 +219,7 @@ elif page == "🤖 LLM Chat":
             answer = llm_answer(user_input)
             st.success(answer)
 
+<<<<<<< HEAD
         # Optional: Extracting numbers & city for visualization
         city_match = next((city for city in ESSENTIALS if city.lower() in user_input.lower()), None)
         salary_match = re.findall(r"\d+", user_input)
@@ -138,6 +227,19 @@ elif page == "🤖 LLM Chat":
             gross = int(salary_match[0])
             net, leftover = calculate_salary(gross, city_match)
             render_salary_charts(net, city_match, leftover)
+=======
+        # Optional: Extract numbers & city for visualization
+        city_match = next((city for city in ["Amsterdam", "Rotterdam", "Utrecht", "Eindhoven", "Groningen"]
+                           if city.lower() in user_input.lower()), None)
+        salary_match = re.findall(r"\d+", user_input)
+        if city_match and salary_match:
+            gross = int(salary_match[0])
+            tax_result = calculate_income_tax.invoke({"gross_salary": gross})
+            net = tax_result["net_after_tax"]
+            expense_result = deduct_expenses.invoke({"net_salary": net, "city": city_match})
+            leftover = expense_result["remaining"]
+            render_salary_charts(net, city_match, leftover, expense_result["expenses"])
+>>>>>>> master
 
 # -------------------- PAGE 3: HELP --------------------
 elif page == "❓ Help":
@@ -145,10 +247,17 @@ elif page == "❓ Help":
     st.write("""
     **Frequently Asked Questions:**
     - **How do I use the Salary Calculator?**
+<<<<<<< HEAD
       Select your job role, location, and enter your gross monthly salary to see your net salary and what's left after essential costs.
 
     - **What is the LLM Chat?**
       You can ask salary-related questions, and the assistant will provide answers based on your input.
+=======
+      Select your job role, location, and seniority to see your net salary and what's left after essential costs.
+
+    - **What is the LLM Chat?**
+      You can ask salary-related questions, and the assistant will provide answers using the same tools.
+>>>>>>> master
 
     - **How can I provide feedback?**
       Please use the feedback form below to share your thoughts or report issues.
@@ -160,6 +269,7 @@ elif page == "❓ Help":
             st.success("Thank you for your feedback!")
         else:
             st.warning("Please enter your feedback before submitting.")
+<<<<<<< HEAD
 
 ########################################################################################################################
 # Some example questions to ask the LLM chat box regarding salary situations.
@@ -203,3 +313,5 @@ elif page == "❓ Help":
 # Miscellaneous:
 # What are the benefits of working in a startup versus a large corporation in terms of salary?
 # How do bonuses and benefits factor into overall salary compensation?
+=======
+>>>>>>> master
