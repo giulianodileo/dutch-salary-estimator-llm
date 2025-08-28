@@ -161,12 +161,42 @@ def bereken_algemene_heffingskorting(salaris):
     else:
         return 0.0
 
+
+def return_net_income(my_dict: dict, fixed_costs):
+
+###############################################################################
+############################ RETURN NET INCOME YEAR 1##########################
+###############################################################################
+
+# CONVERTING TO PANDA DATAFRAME AND ADDING OTHER PARAMETERS
+    df = pd.DataFrame(list(my_dict.items()), columns=["Year", "Taxable Income"])
+
+# ADDING FIXED COSTS FROM DICTIONARY
+    df["Fixed Costs"] = fixed_costs
+
+# CALCULATING TAX
+    df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
+
+# CALCULATING DEDUCTABLES
+    df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting),0)
+    df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting),0)
+
+# CALCULATING NET TAX
+    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
+
+# CALCULATING NETTO INCOME AFTER TAX & FIXED EXPENSES
+    df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+    df.loc[df["Netto Disposable"] < 0, "Netto Disposable"] = 0
+
+    return df["Netto Disposable"].iloc[0]
+
+
 ##########################################################################
 #                               CHART                                    #
 #                                                                        #
 ##########################################################################
-
 def chart_netincome(my_dict: dict, fixed_costs):
+
 # example: my_dict = expat_ruling_calc(35, 35000, "2025-10-01", 7, True, True)
 # see python -> calculate_30_rule for more detais or Jypeter notebook
 # function receives data_dict and fixed_costs amount
@@ -191,14 +221,12 @@ def chart_netincome(my_dict: dict, fixed_costs):
     df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting),0)
     df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting),0)
 
-# CALCULATING NETTO INCOME AFTER TAX & FIXED EXPENSES
-    df["Netto Disposable"] = df["Taxable Income"] + (df["Tax"] + df["Arbeidskorting"] + df["Algemene Heffingskorting"]) - df["Fixed Costs"]
-    df.loc[df["Netto Disposable"] < 0, "Netto Disposable"] = 0
-
 # CALCULATING NET TAX
-    df["Net Tax"] = df["Tax"] - (df["Arbeidskorting"] + df["Algemene Heffingskorting"])
+    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
 
-    print(df)
+# CALCULATING NETTO INCOME AFTER TAX & FIXED EXPENSES
+    df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+    df.loc[df["Netto Disposable"] < 0, "Netto Disposable"] = 0
 
 #######################################################################################
 ############################## PREPARING CHART ########################################
@@ -264,9 +292,11 @@ def chart_netincome(my_dict: dict, fixed_costs):
 if __name__ == "__main__":
     # Example usage
     my_dict = {2025: 80000.0,
-               2026: 80000.0,
-               2027: 70000.0,
-               2028: 70000.0,
-               2029: 100000.0,
+               2026: 60000.0,
+               2027: 60000.0,
+               2028: 60000.0,
+               2029: 60000.0,
                 }
-    chart_netincome(my_dict, 12000)
+
+    res= chart_netincome(my_dict, 12000)
+    print(res)
