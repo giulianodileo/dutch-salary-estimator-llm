@@ -4,10 +4,13 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import re
-from google.cloud import storage
 
-# Import LangChain tools
-from tools import get_gross_salary, calculate_income_tax, deduct_expenses
+# Import tools (StructuredTool versions)
+from tools_2 import (
+    get_gross_salary_tool,
+    calculate_income_tax_tool,
+    deduct_expenses_tool
+)
 
 # Import the init_chat_model function (Gemini)
 try:
@@ -69,44 +72,36 @@ if page == "💶 Salary Calculator":
     st.title("💶 Dutch Salary-to-Reality Calculator")
 
     # User Profile Input
-    user_name = st.sidebar.text_input("What's your name?", "")
+    user_name = st.sidebar.text_input("Enter your name:", "")
     if user_name:
-        st.sidebar.success(f"Welcome, {user_name}! 😎")
+        st.sidebar.success(f"Welcome, {user_name}!")
 
-    job = st.sidebar.selectbox("What is your job?", [
-        "Backend Engineer",
-        "Data Analyst",
-        "Data Scientist",
-        "Data Engineer",
-        "DevOps Engineer",
-        "Frontend Engineer",
-        "Security Engineer",
-        "Software Engineer",
+    job = st.sidebar.selectbox("Select Job Role", [
+        "Data Scientist", "Data Engineer", "Software Engineer", "Nurse", "Police Officer"
     ])
-
-    seniority = st.sidebar.selectbox("What is your seniority?", ["Junior", "Mid-Level", "Senior"])
-    city = st.sidebar.selectbox("Where are you planning to live?", ["Amsterdam", "Rotterdam", "Utrecht", "Eindhoven", "Groningen"])
+    seniority = st.sidebar.selectbox("Select Seniority", ["Junior", "Mid-Level", "Senior"])
+    city = st.sidebar.selectbox("Select Location", ["Amsterdam", "Rotterdam", "Utrecht", "Eindhoven", "Groningen"])
 
     if st.sidebar.button("Calculate"):
-        # 1. Gross salary (from tool)
-        gross = get_gross_salary.invoke({"job_title": job, "seniority": seniority})
+        # 1. Gross salary (via tool)
+        gross = get_gross_salary_tool.invoke({"job_title": job, "seniority": seniority})
 
         if gross == 0:
             st.error("No salary data available for that combination.")
         else:
             # 2. Apply tax tool
-            tax_result = calculate_income_tax.invoke({"gross_salary": gross})
+            tax_result = calculate_income_tax_tool.invoke({"gross_salary": gross})
             net = tax_result["net_after_tax"]
 
             # 3. Deduct expenses tool
-            expense_result = deduct_expenses.invoke({"net_salary": net, "city": city})
+            expense_result = deduct_expenses_tool.invoke({"net_salary": net, "city": city})
             leftover = expense_result["remaining"]
             expenses = expense_result["expenses"]
 
             # 4. Display results
-            st.subheader(f"What you can expect as a {seniority} {job} in the Netherlands if you want to live in {city}")
-            st.metric("Your Gross Salary would be around", f"€{gross:,.0f}")
-            st.metric("Your Net Salary (after tax) could be around", f"€{net:,.0f}")
+            st.subheader(f"Results for {job} ({seniority}) in {city}")
+            st.metric("Gross Salary", f"€{gross:,.0f}")
+            st.metric("Net Salary (after tax)", f"€{net:,.0f}")
             st.metric("Essential Living Costs", f"€{expenses:,.0f}")
             st.metric("💸 What's Left", f"€{leftover:,.0f}")
 
@@ -129,9 +124,9 @@ elif page == "🤖 LLM Chat":
         salary_match = re.findall(r"\d+", user_input)
         if city_match and salary_match:
             gross = int(salary_match[0])
-            tax_result = calculate_income_tax.invoke({"gross_salary": gross})
+            tax_result = calculate_income_tax_tool.invoke({"gross_salary": gross})
             net = tax_result["net_after_tax"]
-            expense_result = deduct_expenses.invoke({"net_salary": net, "city": city_match})
+            expense_result = deduct_expenses_tool.invoke({"net_salary": net, "city": city_match})
             leftover = expense_result["remaining"]
             render_salary_charts(net, city_match, leftover, expense_result["expenses"])
 
