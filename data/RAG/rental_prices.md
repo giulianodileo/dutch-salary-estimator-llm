@@ -138,3 +138,9 @@ Yes, rents in cities like Rotterdam, Groningen, or Eindhoven can be 30–40% low
 * Property type, amenities, and seasonality significantly impact price.
 * Government policies regulate lower-end rentals but leave free-market housing exposed to demand pressures.
 * International demand and economic conditions amplify price fluctuations.
+
+## Notes and Sources
+
+- References:
+  - HousingAnywhere
+  - RentHunter (https://renthunter.nl/what-influences-rent-prices-in-the-netherlands-in-2025/)
