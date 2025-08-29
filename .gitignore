@@ -2,3 +2,8 @@ raw_data/
 .env
 models/
 notebooks/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
