@@ -26,6 +26,7 @@ An eight-minute shower uses about 65 liters of hot water and costs around €0.5
 
 There are many ways to keep energy and water bills under control, even without big investments. Smart meters, thermostats, and apps can help track consumption, while organizations such as Milieu Centraal provide comparison tools and practical saving tips. Simple changes—like shorter showers, lowering wash temperatures, or air-drying clothes—can make a noticeable difference on the bill.
 
-## References
+## Sources and References
 
-An easy way to get an overview of the best providers and their prices is by using a price comparison tool like Energievergelijk.nl (https://www.energievergelijk.nl/english), which is fully available in English.
+- Nibud (National Institute for Family Finance Information)
+- For price comparison, the user can check Energievergelijk.nl (https://www.energievergelijk.nl/english), which is fully available in English.
