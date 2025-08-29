@@ -88,21 +88,7 @@ def load_llm():
         return None
 llm = load_llm()
 # -------------------- HELPER FUNCTIONS --------------------
-def calculate_salary(job, seniority, city, accommodation_type):
-    """Returns gross, net, expenses, leftover"""
-    try:
-        gross = get_gross_salary.invoke({"job_title": job, "seniority": seniority})
-        if gross == 0:
-            return None, None, None, None
-        tax_result = calculate_income_tax.invoke({"gross_salary": gross})
-        net = tax_result["net_after_tax"]
-        expense_result = deduct_expenses.invoke({"net_salary": net, "city": city})
-        expenses = expense_result["expenses"] + ACCOMMODATION[accommodation_type]
-        leftover = net - expenses
-        return gross, net, expenses, leftover
-    except Exception as e:
-        st.error(f"Error calculating salary: {e}")
-        return None, None, None, None
+
 def render_salary_charts(expenses, leftover):
     """Accessible Pie Chart: Expenses vs Disposable Income with white text for disposable income"""
     df = pd.DataFrame({
@@ -226,6 +212,7 @@ if submitted:
             master_dpl=extra["master_diploma"])
 
         return_net_incomee = return_net_income(res_tax, out['essential_costs'])
+        # st.session_state["return_net_incomee"] = return_net_incomee
 
         payload = {
             "inputs": res["inputs"],   # job, seniority, city, accommodation_type, car_type
@@ -245,9 +232,7 @@ if submitted:
 
      #         # -------------------- PIE CHART --------------------
         render_salary_charts(out['essential_costs'], return_net_incomee)
-            # REMOVED: COMPARISON CHART
-            # city_avg_expenses = 1200
-            # render_comparison_chart(net, city_avg_expenses)
+
             # -------------------- DISPOSABLE INCOME GAUGE --------------------
         disposable_pct = max(0, return_net_incomee / (((return_net_incomee/12)+out['essential_costs']) * 100))
         fig = go.Figure(go.Indicator(
@@ -273,49 +258,14 @@ if submitted:
         st.plotly_chart(fig, use_container_width=True)
 
 
-        # ---- métricas arriba ----
-        # st.subheader(f"Result for {job} — {seniority} in {city} ({accommodation_type} and {out['essential_costs']})")
-        # m1, m2, m3, m4, m5 = st.columns(5)
-        # m1.metric("Salary (avg)", f"€{out['salary']['avg']:,.0f}")
-        # m2.metric("Rent (avg)",   f"€{out['rent']['avg']:,.0f}")
-        # m3.metric("Car / month",  f"€{out['car_total_per_month']:,.0f}")
-        # m4.metric("Essential Living Costs", f"€{out['essential_costs']:,.0f}")
-        # m5.metric("Your Net Salary after Tax", f"€{return_net_incomee/12:,.0f}" )
-
         # ---- Details con tabs: Inputs / Extra / Outputs ----
         st.markdown("### Details")
-        tab1, tab2, tab3 = st.tabs(["Inputs", "Extra", "Outputs"])
-
-        with tab1:
-            st.write({
-                "job": res["inputs"]["job"],
-                "seniority": res["inputs"]["seniority"],
-                "city": res["inputs"]["city"],
-                "accommodation_type": res["inputs"]["accommodation_type"],
-                "car_type": res["inputs"]["car_type"],
-            })
-
-        with tab2:
-            st.write({
-                "age": extra["age"],
-                "start_date (US)": extra["start_date_us"],
-                "start_date (ISO)": extra["start_date_iso"],
-                "duration_years": extra["duration_years"],
-                "expertise": extra["expertise"],
-                "master_diploma": extra["master_diploma"],
-            })
-
-        with tab3:
-            st.write({
-                "salary": out["salary"],                  # {min, avg, max}
-                "rent": out["rent"],                      # {min, avg, max}
-                "car_total_per_month": out["car_total_per_month"],
-            })
 
         # (opcional) también mostrar el JSON crudo
         with st.expander("Raw payload (JSON)"):
             import json
             st.code(json.dumps(payload, indent=2), language="json")
+
 
 
 
@@ -325,58 +275,23 @@ if submitted:
         st.error(f"Unexpected error: {e}")
 else:
     st.info("Completa los campos y presiona **Calculate**.")
+# return_net_incomee = return_net_income(res_tax, out['essential_costs'])
+# thabiso = st.session_state["return_net_incomee"]
 
-    # if st.sidebar.button("Calculate"):
-    #     gross, net, expenses, leftover = calculate_salary(job, seniority, city, accommodation_type)
-    #     if gross is None:
-    #         st.error("Salary data not available for this combination.")
-    #     else:
-    #         st.subheader(f"Expected salary for a {seniority} {job} in {city}")
-    #         # -------------------- METRICS --------------------
-    #         col1, col2, col3, col4 = st.columns(4)
-    #         col1.metric("Gross Salary", f"€{gross:,.0f}")
-    #         col2.metric("Net Salary", f"€{net:,.0f}")
-    #         col3.metric("Essentials + Housing Costs", f"€{expenses:,.0f}", help="Monthly essential expenses including housing.")
-    #         col4.metric("Disposable Income", f"€{leftover:,.0f}", help="Money left after paying essentials + housing.")
-    #         # -------------------- PIE CHART --------------------
-    #         render_salary_charts(expenses, leftover)
-    #         # REMOVED: COMPARISON CHART
-    #         # city_avg_expenses = 1200
-    #         # render_comparison_chart(net, city_avg_expenses)
-    #         # -------------------- DISPOSABLE INCOME GAUGE --------------------
-    #         disposable_pct = max(0, leftover / net * 100)
-    #         fig = go.Figure(go.Indicator(
-    #             mode="gauge+number",
-    #             value=disposable_pct,
-    #             domain={'x': [0, 1], 'y': [0, 1]},
-    #             title={'text': "Disposable Income %"},
-    #             gauge={
-    #                 'axis': {'range': [0, 100]},
-    #                 'bar': {'color': "green"},
-    #                 'steps': [
-    #                     {'range': [0, 20], 'color': 'red'},
-    #                     {'range': [20, 50], 'color': 'orange'},
-    #                     {'range': [50, 100], 'color': 'lightgreen'}
-    #                 ],
-    #                 'threshold': {
-    #                     'line': {'color': "blue", 'width': 4},
-    #                     'thickness': 0.75,
-    #                     'value': disposable_pct
-    #                 }
-    #             }
-    #         ))
-    #         st.plotly_chart(fig, use_container_width=True)
-            # -------------------- SAVINGS RECOMMENDATION --------------------
-            # st.markdown("### :moneybag: Suggested Savings")
-            # if leftover <= 0:
-            #     st.warning("You are spending all of your net income. Consider reducing housing or essentials costs.")
-            # elif leftover / net < 0.2:
-            #     st.info("Your disposable income is low. Aim to save at least 5-10% of your net salary.")
-            # elif leftover / net < 0.4:
-            #     st.success("Good! You can save 15-25% of your net salary each month.")
-            # else:
-            #     st.success("Excellent! You have a high disposable income. Consider saving 25-40% or investing for growth.")
-            # st.info(f":bulb: Tip: Track your spending monthly. In {city}, typical accommodation costs range around {ACCOMMODATION[accommodation_type]} €.")
+# st.session_state["last_payload"]["net tax"]
+
+# thabisoo = st.session_state["last_payload"]["net tax"]
+#             # -------------------- SAVINGS RECOMMENDATION --------------------
+st.markdown("### :moneybag: Suggested Savings")
+# if (thabiso) <= 0:
+#     st.warning("You are spending all of your net income. Consider reducing housing or essentials costs.")
+# elif thabiso / thabisoo < 0.2:
+#     st.info("Your disposable income is low. Aim to save at least 5-10% of your net salary.")
+# elif thabiso / thabisoo < 0.4:
+#     st.success("Good! You can save 15-25% of your net salary each month.")
+# else:
+#     st.success("Excellent! You have a high disposable income. Consider saving 25-40% or investing for growth.")
+#     st.info(f":bulb: Tip: Track your spending monthly. In {city}, typical accommodation costs range around {accommodation_type} €.")
 ##...........................................................................................................................................................................................................
 
 
