@@ -152,11 +152,13 @@ if page == ":euro: Salary Calculator":
         st.sidebar.success(f"Welcome, {user_name}! :sunglasses:")
     age = st.sidebar.number_input("What is your age?", min_value=18, max_value=70, step=1)
     # Degree question immediately after age
+    choice = "No"
     if age < 30:
         choice = st.sidebar.radio(
         "Do you have a Master’s Degree (or higher) obtained in the Netherlands?",
         ["Yes", "No"],
     )
+    # st.write(choice)
     has_masters_nl = (choice == "Yes")   # <- bool True/False
     # Remaining sidebar inputs
     job = st.sidebar.selectbox("Job Role", opts["jobs"])
