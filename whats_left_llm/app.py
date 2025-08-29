@@ -224,3 +224,36 @@ elif page == ":question: Help":
     feedback = st.text_area("Your Feedback:", "")
     if st.button("Submit Feedback") and feedback:
         save_feedback(feedback)
+########################################################################################################################
+# Some example questions to ask the LLM chat box regarding salary situations.
+# These questions cover various aspects of salary, cost of living, and financial planning:
+# General Salary Questions:
+# What is the average salary for a Data Scientist in Amsterdam?
+# How does the salary of a Software Engineer in Rotterdam compare to that in Utrecht?
+# What factors influence salary levels in the Netherlands?
+# Cost of Living:
+# What are the essential living costs in Amsterdam for a single person?
+# How much should I budget for rent in Rotterdam?
+# What are the average monthly expenses for a family of four living in Utrecht?
+# Disposable Income:
+# If I earn €5000 gross per month in Eindhoven, what will my net salary be after taxes?
+# How much disposable income can I expect after paying essential living costs in Groningen?
+# What percentage of my salary should I save each month?
+# Salary Negotiation:
+# What is the best way to negotiate a higher salary during a job offer?
+# How can I justify asking for a salary increase during my performance review?
+# Job Role Specific:
+# What is the salary range for a Nurse in the Netherlands?
+# How does the salary of a Police Officer in Amsterdam compare to that in smaller cities?
+# Tax Implications:
+# What is the tax rate for salaries in the Netherlands?
+# How do tax deductions affect my net salary?
+# Financial Planning:
+# What financial advice do you have for someone starting their career in the tech industry?
+# How can I effectively manage my finances with a salary of €4000 per month?
+# Future Salary Expectations:
+# What salary growth can I expect in the tech industry over the next five years?
+# How does the salary of entry-level positions compare to mid-level positions in the Netherlands?
+# Miscellaneous:
+# What are the benefits of working in a startup versus a large corporation in terms of salary?
+# How do bonuses and benefits factor into overall salary compensation?
