@@ -4,12 +4,12 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import json
-from whats_left_llm.calculate_30_rule import expat_ruling_calc
-from whats_left_llm.chart import return_net_income
+from calculate_30_rule import expat_ruling_calc
+from chart import return_net_income
 import datetime as dt
 
-from whats_left_llm.data_base_code.calculator_core import get_estimates, DB_URI
-from whats_left_llm.calculate_30_rule import expat_ruling_calc
+from calculator_core import get_estimates, DB_URI
+from calculate_30_rule import expat_ruling_calc
 
 import sqlite3
 from pathlib import Path
