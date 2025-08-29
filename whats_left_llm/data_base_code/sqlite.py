@@ -693,7 +693,7 @@ def demo_query_normalized():
     llm = init_llm()
     writer = build_sql_writer(db, llm)
 
-    question = "tell me the highest salary and the hights cost of renting in amsterdam"
+    question = "How much does water cost per month according to Nibud?"
     res = writer.invoke({"history": [], "question": question})
     sql = strip_fences(res["query"])
     raw = execute_sql(db, sql)
