@@ -219,14 +219,14 @@ if submitted:
             "extra": extra,            # 👈 tus nuevos inputs
             "outputs": out,            # salary, rent, car_total_per_month
             "tax dic": res_tax,
-            "net tax": return_net_incomee,
+            "net tax": return_net_incomee/12,
         }
         st.session_state["last_payload"] = payload  # opcional, por si quieres usarlo luego
 
     # -------------------- METRICS --------------------
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Gross Salary", f"€{out['salary']['avg']:,.0f}")
-        col2.metric("Net Salary", f"€{((return_net_incomee/12)+out['essential_costs']):,.0f}")
+        col2.metric("Net Salary", f"€{(res_tax[2025]/12):,.0f}")
         col3.metric("Essential Living Costs", f"€{out['essential_costs']:,.0f}")
         col4.metric("Disposable Income", f"€{return_net_incomee/12:,.0f}")
 
