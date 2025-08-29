@@ -1,4 +1,5 @@
 # Dutch Salary-to-Reality Calculator (Enhanced & Accessible)
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -25,6 +26,14 @@ ACCOMMODATION = {
     "Studio": 0,
     "Apartment (1 bedroom)": 0,
     "Apartment (2 bedroom)": 0
+}
+
+# Loading car cost data from nibud_car_cost.json (embedded here for example)
+NIBUD_CAR_COSTS = {
+    "mini": 351.5,
+    "compact": 442.5,
+    "small_middle": 587.5,
+    "middle": 649.5
 }
 
 CITIES = ["Amsterdam", "Rotterdam", "Utrecht", "Eindhoven", "Groningen"]
@@ -55,11 +64,10 @@ def load_llm():
     except Exception as e:
         st.sidebar.error(f":warning: Could not load LLM: {e}")
         return None
-
 llm = load_llm()
 
 # -------------------- HELPER FUNCTIONS --------------------
-def calculate_salary(job, seniority, city, accommodation_type):
+def calculate_salary(job, seniority, city, accommodation_type, car_cost=0):
     """Returns gross, net, expenses, leftover"""
     try:
         gross = get_gross_salary.invoke({"job_title": job, "seniority": seniority})
@@ -68,7 +76,7 @@ def calculate_salary(job, seniority, city, accommodation_type):
         tax_result = calculate_income_tax.invoke({"gross_salary": gross})
         net = tax_result["net_after_tax"]
         expense_result = deduct_expenses.invoke({"net_salary": net, "city": city})
-        expenses = expense_result["expenses"] + ACCOMMODATION[accommodation_type]
+        expenses = expense_result["expenses"] + ACCOMMODATION[accommodation_type] + car_cost
         leftover = net - expenses
         return gross, net, expenses, leftover
     except Exception as e:
@@ -137,40 +145,45 @@ page = st.sidebar.radio("Go to:", ["💶 Salary Calculator", "🤖 Salary & Budg
 # -------------------- PAGE 1: SALARY CALCULATOR --------------------
 if page == "💶 Salary Calculator":
     st.title("💶 Dutch Salary-to-Reality Calculator")
-
     # Sidebar Inputs
     user_name = st.sidebar.text_input("What's your name?", "")
     if user_name:
         st.sidebar.success(f"Welcome, {user_name}! 😎")
-
     age = st.sidebar.number_input("What is your age?", min_value=18, max_value=70, step=1)
-
     # Degree question immediately after age
     has_masters_nl = None
     if age < 30:
         has_masters_nl = st.sidebar.radio(
             "Do you have a Master’s Degree (or higher) obtained in the Netherlands?", ["Yes", "No"]
         )
-
     # Remaining sidebar inputs
     job = st.sidebar.selectbox("Job Role", JOBS)
     seniority = st.sidebar.selectbox("Seniority", SENIORITY_LEVELS)
     city = st.sidebar.selectbox("City", CITIES)
     accommodation_type = st.sidebar.selectbox("Accommodation Type", list(ACCOMMODATION.keys()))
-
+    # New input: Do you have a car?
+    has_car = st.sidebar.radio("Do you have a car?", ["No", "Yes"])
+    car_cost = 0
+    if has_car == "Yes":
+        car_type = st.sidebar.selectbox(
+            "Select your car type:",
+            ["mini", "compact", "small_middle", "middle"]
+        )
+        car_cost = NIBUD_CAR_COSTS.get(car_type, 0)
     if st.sidebar.button("Calculate"):
-        gross, net, expenses, leftover = calculate_salary(job, seniority, city, accommodation_type)
+        gross, net, expenses, leftover = calculate_salary(job, seniority, city, accommodation_type, car_cost)
         if gross is None:
             st.error("Salary data not available for this combination.")
         else:
             st.subheader(f"Expected salary for a {seniority} {job} in {city}")
 
+
             # -------------------- METRICS --------------------
             col1, col2, col3, col4 = st.columns(4)
             col1.metric("Gross Salary", f"€{gross:,.0f}")
             col2.metric("Net Salary", f"€{net:,.0f}")
-            col3.metric("Essentials + Housing Costs", f"€{expenses:,.0f}", help="Monthly essential expenses including housing.")
-            col4.metric("Disposable Income", f"€{leftover:,.0f}", help="Money left after paying essentials + housing.")
+            col3.metric("Essentials + Housing + Car Costs", f"€{expenses:,.0f}", help="Monthly essential expenses including housing and car costs.")
+            col4.metric("Disposable Income", f"€{leftover:,.0f}", help="Money left after paying essentials, housing, and car costs.")
 
             # -------------------- PIE CHART --------------------
             render_salary_charts(expenses, leftover)
@@ -206,15 +219,16 @@ if page == "💶 Salary Calculator":
             # -------------------- SAVINGS RECOMMENDATION --------------------
             st.markdown("### 💰 Suggested Savings")
             if leftover <= 0:
-                st.warning("You are spending all of your net income. Consider reducing housing or essentials costs.")
+                st.warning("You are spending all of your net income. Consider reducing housing, essentials, or car costs.")
             elif leftover / net < 0.2:
                 st.info("Your disposable income is low. Aim to save at least 5-10% of your net salary.")
             elif leftover / net < 0.4:
                 st.success("Good! You can save 15-25% of your net salary each month.")
             else:
                 st.success("Excellent! You have a high disposable income. Consider saving 25-40% or investing for growth.")
-
             st.info(f"💡 Tip: Track your spending monthly. In {city}, typical accommodation costs range around {ACCOMMODATION[accommodation_type]} €.")
+            if has_car == "Yes":
+                st.info(f"💡 Car costs for a {car_type} class car are estimated at €{car_cost} per month.")
 
 # -------------------- PAGE 2: LLM CHAT --------------------
 elif page == "🤖 Salary & Budget Chat":
@@ -227,6 +241,7 @@ elif page == "🤖 Salary & Budget Chat":
         "How much to budget for rent in Utrecht?",
         "How much disposable income with €4500 net in Rotterdam?"
     ]
+
     st.write("💡 Suggested questions:")
     for q in suggested_questions:
         if st.button(q):
@@ -240,20 +255,19 @@ elif page == "🤖 Salary & Budget Chat":
         with st.spinner("Thinking..."):
             answer = llm_answer(user_input)
             st.success(answer)
-
 # -------------------- PAGE 3: HELP --------------------
-elif page == ":question: Help":
-    st.title("Help & FAQ")
-    st.write("""
-    **Frequently Asked Questions:**
-    - **How do I use the Salary Calculator?** Select your job, city, seniority, age, and accommodation type.
-    - **Why age & degree?** If under 30, degree info affects benefits/policies.
-    - **What is the LLM Chat?** Ask salary-related questions; the assistant will respond.
-    - **Provide feedback below:** Share your thoughts or report issues.
-    """)
-    feedback = st.text_area("Your Feedback:", "")
-    if st.button("Submit Feedback") and feedback:
-        save_feedback(feedback)
+    elif page == ":question: Help":
+        st.title("Help & FAQ")
+        st.write("""
+        **Frequently Asked Questions:**
+        - **How do I use the Salary Calculator?** Select your job, city, seniority, age, accommodation type, and car ownership.
+        - **Why age & degree?** If under 30, degree info affects benefits/policies.
+        - **What is the LLM Chat?** Ask salary-related questions; the assistant will respond.
+        - **Provide feedback below:** Share your thoughts or report issues.
+        """)
+        feedback = st.text_area("Your Feedback:", "")
+        if st.button("Submit Feedback") and feedback:
+            save_feedback(feedback)
 
 
 ########################################################################################################################
