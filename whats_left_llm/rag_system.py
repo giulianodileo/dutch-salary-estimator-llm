@@ -1,20 +1,24 @@
 # Dutch Salary-to-Reality Calculator Prototype (Enhanced)
 
+# -------------------- LIBRARIES --------------------
+
+# pip install langgraph
+# pip install "unstructured[md]
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import asyncio
 import re
 from pathlib import Path
-# pip install langgraph
+from langchain_core.prompts import ChatPromptTemplate
 
 # Import LangChain tools (salary calc)
 from tools import get_gross_salary, calculate_income_tax, deduct_expenses
-
 # Import LangChain (Gemini chat + embeddings)
 try:
     from langchain.chat_models import init_chat_model
     from langchain_google_genai import GoogleGenerativeAIEmbeddings
-    from langchain_community.document_loaders import DirectoryLoader
+    from langchain_community.document_loaders import DirectoryLoader, TextLoader
     from langchain_text_splitters import RecursiveCharacterTextSplitter
     from langchain_core.vectorstores import InMemoryVectorStore
     from langchain import hub
@@ -26,6 +30,17 @@ try:
 except ImportError:
     st.sidebar.error("⚠️ Could not import LangChain Google GenAI modules. Check your installation.")
     HAS_LLM = False
+
+from dotenv import load_dotenv
+import os
+
+# --- load .env first ---
+load_dotenv()
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+if not GOOGLE_API_KEY:
+    st.sidebar.error("⚠️ GOOGLE_API_KEY not found. Please add it to your .env file.")
+
 
 # -------------------- CONFIG --------------------
 st.set_page_config(
@@ -49,27 +64,41 @@ def load_llm():
 llm = load_llm()
 
 # -------------------- RAG SETUP --------------------
+
 @st.cache_resource(show_spinner=True)
 def load_vector_store():
     """Load and index Markdown docs for RAG once at startup."""
     try:
+        # Ensure event loop exists (Streamlit thread hack)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
         BASE_DIR = Path(__file__).resolve().parent
-        DATA_DIR = f"{BASE_DIR.parent}/data/RAG"
+        DATA_DIR = BASE_DIR.parent / "data" / "RAG"
 
-        st.write(f"Loading RAG documents from: {DATA_DIR}")
+        # Load Markdown files with TextLoader
+        docs = []
+        for md_file in DATA_DIR.glob("*.md"):
+            loader = TextLoader(str(md_file), encoding="utf-8")
+            docs.extend(loader.load())
 
-        loader = DirectoryLoader(str(DATA_DIR), glob="*.md")
-        docs = loader.load()
-
+        # Split into chunks
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200
         )
         all_splits = text_splitter.split_documents(docs)
 
+        # Embed + store
         embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
         vector_store = InMemoryVectorStore(embeddings)
         vector_store.add_documents(all_splits)
+
+        # Debug info in sidebar
+        st.sidebar.info(f"RAG initialized with {len(docs)} docs → {len(all_splits)} chunks")
 
         return vector_store
     except Exception as e:
@@ -78,9 +107,23 @@ def load_vector_store():
 
 vector_store = load_vector_store()
 
+
 # -------------------- RAG CHAIN --------------------
 if HAS_LLM and llm and vector_store:
-    prompt = hub.pull("rlm/rag-prompt")
+
+    rag_prompt = ChatPromptTemplate.from_messages([
+
+    ("system",
+     "You are a specialized assistant helping professionals in the Netherlands "
+     "understand salaries, taxes, housing, transportation, and related costs. "
+     "You only answer using the provided context (retrieved documents). "
+     "If the context does not contain the answer, explicitly say you don't know. "
+     "Use simple words when interacting with the user. "
+     "Keep answers concise (max 3 sentences), factual, and insightful. "
+     "Always include the SOURCE LABEL in your answers."),
+    ("human", "Question: {question}\n\nContext:\n{context}\n\nAnswer:")
+    ])
+
 
     class State(TypedDict):
         question: str
@@ -91,11 +134,44 @@ if HAS_LLM and llm and vector_store:
         retrieved_docs = vector_store.similarity_search(state["question"])
         return {"context": retrieved_docs}
 
+    SOURCE_LABELS = {
+    "health_insurance.md": "Rijksoverheid (Government of the Netherlands)",
+    "rental_prices.md": "HousingAnywhere, RentHunter",
+    "ruling_30_narrative.md": "Belastingdienst (Tax and Customs Administration)",
+    "seniority_levels.md": "Google",
+    "tax_narrative_NL.md": "Belastingdienst (Tax and Customs Administration)",
+    "transportation.md": "Nibud (National Institute for Family Finance Information)",
+    "utilities.md": "Nibud (National Institute for Family Finance Information)"
+}
+
+
     def generate(state: State):
-        docs_content = "\n\n".join(doc.page_content for doc in state["context"])
-        messages = prompt.invoke({"question": state["question"], "context": docs_content})
+        sources_used = []
+        docs_content = []
+
+        for doc in state["context"]:
+            # Always fall back to our manual mapping
+            filename = Path(doc.metadata.get("source", "unknown")).name
+            label = SOURCE_LABELS.get(filename, filename)  # map filename → friendly name
+            sources_used.append(label)
+            docs_content.append(doc.page_content)  # keep only the content
+
+
+        docs_text = "\n\n".join(docs_content)
+
+        messages = rag_prompt.invoke({
+            "question": state["question"],
+            "context": docs_text
+        })
         response = llm.invoke(messages)
-        return {"answer": response.content}
+
+        return {
+            "answer": response.content.strip(),
+            "sources": sorted(set(sources_used))  # dedup + sorted
+        }
+
+
+
 
     graph_builder = StateGraph(State).add_sequence([retrieve, generate])
     graph_builder.add_edge(START, "retrieve")
@@ -105,12 +181,13 @@ else:
 
 def rag_answer(question: str):
     if not rag_chain:
-        return "⚠️ RAG not available. Please check setup."
+        return {"answer": "⚠️ RAG not available. Please check setup.", "sources": []}
     try:
         result = rag_chain.invoke({"question": question})
-        return result["answer"]
+        return result  # <-- keep the dict {answer: ..., sources: [...]}
     except Exception as e:
-        return f"⚠️ RAG error: {e}"
+        return {"answer": f"⚠️ RAG error: {e}", "sources": []}
+
 
 # -------------------- VISUALIZATION --------------------
 def render_salary_charts(net, city, leftover, expenses):
@@ -169,15 +246,20 @@ if page == "💶 Salary Calculator":
             render_salary_charts(net, city, leftover, expenses)
 
 # -------------------- PAGE 2: LLM CHAT --------------------
+
 elif page == "🤖 LLM Chat":
-    st.title("🤖 Ask about your Salary Situation (with RAG)")
+    st.title("🤖 What can I help you with?")
     st.info("Type a salary-related or NL-expat-related question. Answers are based on your knowledge base + Gemini.")
 
     user_input = st.text_area("Your Question:", "")
     if st.button("Ask") and user_input:
         with st.spinner("Thinking..."):
-            answer = rag_answer(user_input)
-            st.success(answer)
+            result = rag_answer(user_input)
+
+            st.success(result["answer"])
+
+            if result.get("sources"):
+                st.caption("📌 Source(s): " + ", ".join(result["sources"]))
 
         # Optional chart extraction
         city_match = next((city for city in ["Amsterdam", "Rotterdam", "Utrecht", "Eindhoven", "Groningen"]
