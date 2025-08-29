@@ -99,8 +99,9 @@ def render_salary_charts(expenses, leftover):
             "Essential + Housing Costs": "#2E91E5",
             "Disposable Income": "#1CA71C"
         })
-    fig.update_traces(textinfo="label+percent+value",
-                     textfont_color=["black", "white"])
+    # Showing only percentages on the pie slices, no labels or values
+    fig.update_traces(textinfo="percent",
+                      textfont_color="white")
     st.plotly_chart(fig)
 
 # REMOVED: render_comparison_chart function
@@ -255,18 +256,18 @@ elif page == "🤖 Salary & Budget Chat":
             answer = llm_answer(user_input)
             st.success(answer)
 # -------------------- PAGE 3: HELP --------------------
-    elif page == ":question: Help":
-        st.title("Help & FAQ")
-        st.write("""
-        **Frequently Asked Questions:**
-        - **How do I use the Salary Calculator?** Select your job, city, seniority, age, accommodation type, and car ownership.
-        - **Why age & degree?** If under 30, degree info affects benefits/policies.
-        - **What is the LLM Chat?** Ask salary-related questions; the assistant will respond.
-        - **Provide feedback below:** Share your thoughts or report issues.
-        """)
-        feedback = st.text_area("Your Feedback:", "")
-        if st.button("Submit Feedback") and feedback:
-            save_feedback(feedback)
+elif page == ":question: Help":
+    st.title("Help & FAQ")
+    st.write("""
+    **Frequently Asked Questions:**
+    - **How do I use the Salary Calculator?** Select your job, city, seniority, age, accommodation type, and car ownership.
+    - **Why age & degree?** If under 30, degree info affects benefits/policies.
+    - **What is the LLM Chat?** Ask salary-related questions; the assistant will respond.
+    - **Provide feedback below:** Share your thoughts or report issues.
+    """)
+    feedback = st.text_area("Your Feedback:", "")
+    if st.button("Submit Feedback") and feedback:
+        save_feedback(feedback)
 
 
 ########################################################################################################################
