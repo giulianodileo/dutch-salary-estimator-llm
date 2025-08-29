@@ -54,7 +54,9 @@ def load_vector_store():
     """Load and index Markdown docs for RAG once at startup."""
     try:
         BASE_DIR = Path(__file__).resolve().parent
-        DATA_DIR = BASE_DIR / "data" / "RAG"
+        DATA_DIR = f"{BASE_DIR.parent}/data/RAG"
+
+        st.write(f"Loading RAG documents from: {DATA_DIR}")
 
         loader = DirectoryLoader(str(DATA_DIR), glob="*.md")
         docs = loader.load()
