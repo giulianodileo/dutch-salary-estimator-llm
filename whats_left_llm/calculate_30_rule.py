@@ -131,7 +131,7 @@ def expat_ruling_calc(age: int, salary: float, date_string: str, duration: int =
     else:
         other_years_sequence = list(keys_list[1:6])
 
-    print(other_years_sequence)
+    # print(other_years_sequence)
 
     for key in other_years_sequence:
       if key >= 2027:
