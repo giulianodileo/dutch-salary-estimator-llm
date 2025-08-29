@@ -71,7 +71,7 @@ if not any(opts.values()):
 with st.form("inputs"):
     col1, col2, col3 = st.columns(3)
     with col1:
-        job = st.selectbox("Job", opts["jobs"] or ["Backend Engineer"])
+        job = st.selectbox("JobBB", opts["jobs"])
         seniority = st.selectbox("Seniority", opts["seniorities"] or ["Junior"])
     with col2:
         city = st.selectbox("City", opts["cities"] or ["Amsterdam"])
@@ -94,7 +94,7 @@ with st.form("inputs"):
         expertise = st.checkbox("Expertise", value=False)
         master_diploma = st.checkbox("Master's diploma", value=False)
 
-    submitted = st.form_submit_button("Calculate")
+    submitted = st.form_submit_button("Calcue")
 
 if submitted:
     try:
