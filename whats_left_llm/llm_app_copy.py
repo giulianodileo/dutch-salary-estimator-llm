@@ -11,10 +11,9 @@ from whats_left_llm.chart import return_net_income
 
 import sqlite3
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 import datetime as dt
 import asyncio
-import re
 from pathlib import Path
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -316,7 +315,7 @@ if page == ":euro: Salary Calculator":
 
     if age < 30:
         choice = st.sidebar.radio(
-        "Do you have a Master’s Degree (or higher) obtained in the Netherlands?",
+        "Do you have a Master's Degree (or higher) obtained in the Netherlands?",
         ["Yes", "No"],
     )
         has_masters_nl = (choice == "Yes")   # <- bool True/False
