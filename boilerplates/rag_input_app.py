@@ -1,4 +1,3 @@
-# Dutch Salary-to-Reality Calculator (Enhanced & Accessible)
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -271,20 +270,7 @@ def render_salary_charts(expenses, leftover):
     fig.update_traces(textinfo="label+percent+value",
                      textfont_color=["black", "white"])
     st.plotly_chart(fig)
-# REMOVED: render_comparison_chart function
-# def render_comparison_chart(net_salary, city_avg_expenses):
-#    """Compare user's net vs average city expenses"""
-#    df = pd.DataFrame({
-#        "Category": ["Your Net Salary", "Avg City Expenses"],
-#        "Amount": [net_salary, city_avg_expenses]
-#    })
-#    st.plotly_chart(
-#        px.bar(
-#            df, x="Category", y="Amount",
-#            title=":bar_chart: Net Salary vs Average City Expenses",
-#            color="Category", color_discrete_sequence=COLOR_PALETTE
-#        )
-#    )
+
 def llm_answer(question: str):
     """Query the LLM"""
     if not HAS_LLM or not llm:
@@ -304,7 +290,7 @@ def save_feedback(feedback_text):
         st.error(f"Could not save feedback: {e}")
 # -------------------- NAVIGATION --------------------
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to:", [":euro: Salary Calculator", ":robot_face: Salary & Budget Chat", ":question: Help"])
+page = st.sidebar.radio("Go to:", [":euro: Salary Calculator", ":robot_face: Salary & Budget Chat"])
 # -------------------- PAGE 1: SALARY CALCULATOR --------------------
 submitted = False
 
@@ -399,33 +385,8 @@ if page == ":euro: Salary Calculator":
             col3.metric("Essential Living Costs", f"€{out['essential_costs']:,.0f}")
             col4.metric("Disposable Income", f"€{return_net_incomee/12:,.0f}")
 
-        #         # -------------------- PIE CHART --------------------
+        # -------------------- PIE CHART --------------------
             render_salary_charts(out['essential_costs'], return_net_incomee)
-
-                # -------------------- DISPOSABLE INCOME GAUGE --------------------
-            disposable_pct = max(0, return_net_incomee / (((return_net_incomee/12)+out['essential_costs']) * 100))
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=disposable_pct,
-                domain={'x': [0, 1], 'y': [0, 1]},
-                title={'text': "Disposable Income %"},
-                gauge={
-                    'axis': {'range': [0, 100]},
-                    'bar': {'color': "green"},
-                    'steps': [
-                            {'range': [0, 20], 'color': 'red'},
-                            {'range': [20, 50], 'color': 'orange'},
-                            {'range': [50, 100], 'color': 'lightgreen'}
-                    ],
-                    'threshold': {
-                        'line': {'color': "blue", 'width': 4},
-                        'thickness': 0.75,
-                        'value': disposable_pct
-                        }
-                    }
-                ))
-            st.plotly_chart(fig, use_container_width=True)
-
 
             # ---- Details con tabs: Inputs / Extra / Outputs ----
             st.markdown("### Details")
@@ -435,9 +396,6 @@ if page == ":euro: Salary Calculator":
                 import json
                 st.code(json.dumps(payload, indent=2), language="json")
 
-
-
-
         except ValueError as ve:
             st.warning(str(ve))
         except Exception as e:
@@ -445,7 +403,7 @@ if page == ":euro: Salary Calculator":
     else:
         st.info("Completa los campos y presiona **Calculate**.")
 
-
+# ---------------------------------------------------- Page 2: Chat LLM --------------------------------------------------------------------------------
 elif page == ":robot_face: Salary & Budget Chat":
     st.title(":robot_face: Ask about Your Salary & Budget")
     st.info("Ask questions like: 'Disposable income in Amsterdam with €5000 gross?'")
@@ -474,64 +432,3 @@ elif page == ":robot_face: Salary & Budget Chat":
         st.success(result["answer"])
         if result.get("sources"):
             st.caption("📌 Source(s): " + ", ".join(result["sources"]))
-
-# return_net_incomee = return_net_income(res_tax, out['essential_costs'])
-# thabiso = st.session_state["return_net_incomee"]
-
-# st.session_state["last_payload"]["net tax"]
-
-# thabisoo = st.session_state["last_payload"]["net tax"]
-#             # -------------------- SAVINGS RECOMMENDATION --------------------
-# st.markdown("### :moneybag: Suggested Savings")
-# if (thabiso) <= 0:
-#     st.warning("You are spending all of your net income. Consider reducing housing or essentials costs.")
-# elif thabiso / thabisoo < 0.2:
-#     st.info("Your disposable income is low. Aim to save at least 5-10% of your net salary.")
-# elif thabiso / thabisoo < 0.4:
-#     st.success("Good! You can save 15-25% of your net salary each month.")
-# else:
-#     st.success("Excellent! You have a high disposable income. Consider saving 25-40% or investing for growth.")
-#     st.info(f":bulb: Tip: Track your spending monthly. In {city}, typical accommodation costs range around {accommodation_type} €.")
-##...........................................................................................................................................................................................................
-
-
-
-
-
-#...............................................................................................................................................................................................................
-
-# -------------------- PAGE 2: LLM CHAT --------------------
-# elif page == ":robot_face: Salary & Budget Chat":
-#     st.title(":robot_face: Ask about Your Salary & Budget")
-#     st.info("Ask questions like: 'Disposable income in Amsterdam with €5000 gross?'")
-#     # Suggested questions for users
-#     suggested_questions = [
-#         "Average salary for Data Scientist in Amsterdam?",
-#         "How much to budget for rent in Utrecht?",
-#         "How much disposable income with €4500 net in Rotterdam?"
-#     ]
-#     st.write(":bulb: Suggested questions:")
-#     for q in suggested_questions:
-#         if st.button(q):
-#             user_input = q
-#             with st.spinner("Thinking..."):
-#                 answer = llm_answer(user_input)
-#             st.success(answer)
-#     user_input = st.text_area("Or type your own question:", "")
-#     if st.button("Ask") and user_input:
-#         with st.spinner("Thinking..."):
-#             answer = llm_answer(user_input)
-#             st.success(answer)
-# # -------------------- PAGE 3: HELP --------------------
-# elif page == ":question: Help":
-#     st.title("Help & FAQ")
-#     st.write("""
-#     *Frequently Asked Questions:*
-#     - *How do I use the Salary Calculator?* Select your job, city, seniority, age, and accommodation type.
-#     - *Why age & degree?* If under 30, degree info affects benefits/policies.
-#     - *What is the LLM Chat?* Ask salary-related questions; the assistant will respond.
-#     - *Provide feedback below:* Share your thoughts or report issues.
-#     """)
-#     feedback = st.text_area("Your Feedback:", "")
-#     if st.button("Submit Feedback") and feedback:
-#         save_feedback(feedback)
