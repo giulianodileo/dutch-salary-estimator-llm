@@ -20,7 +20,7 @@ In the Netherlands, health insurance is mandatory. Every resident must have at l
 
 ## Monthly Premium (2025)
 
-* Average basic insurance premium: €1880 per year → \~€157 per month.
+* Average basic insurance premium: €1880 per year, which is roughly **€157 per month**.
 * Premiums differ per insurer and policy.
 * Children under 18: no premium.
 
@@ -40,7 +40,7 @@ In the Netherlands, health insurance is mandatory. Every resident must have at l
 
 ## Deductible (Eigen Risico)
 
-* Adults (18+) pay a mandatory deductible of **€385 per year** for healthcare services from the basic package.
+* Adults (18+) pay a mandatory deductible of €385 per year for healthcare services from the basic package.
 * You pay the first €385 of healthcare costs yourself before your insurer covers the rest.
 * No deductible applies to certain care, including:
 

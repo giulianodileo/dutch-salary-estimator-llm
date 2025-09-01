@@ -4,8 +4,8 @@ import streamlit as st
 import sqlite3
 from pathlib import Path
 from typing import List, Dict, Any
-from calculator_core import get_estimates, DB_URI
-from calculate_30_rule import expat_ruling_calc
+from whats_left_llm.calculator_core import get_estimates, DB_URI
+from whats_left_llm.calculate_30_rule import expat_ruling_calc
 
 COLOR_PALETTE = ["#2E91E5", "#E15F99", "#1CA71C", "#FB0D0D"]
 # -------------------- DB HELPERS --------------------
