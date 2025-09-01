@@ -167,8 +167,8 @@ if HAS_LLM and llm and vector_store:
 
 
 # -------------------- PAGE 2: LLM CHAT --------------------
-def render():
-    st.title(":robot_face: Ask about Your Salary & Budget")
+with st.container():
+    st.title("Ask to Alex")
     st.info("Ask things like: 'Disposable income in Amsterdam with €5000 gross?'")
 
     suggested_questions = [
