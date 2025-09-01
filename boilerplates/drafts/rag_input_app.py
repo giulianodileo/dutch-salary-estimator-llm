@@ -170,6 +170,8 @@ if HAS_LLM and llm and vector_store:
         "Answer:")
     ])
 
+
+
     class State(TypedDict):
         question: str
         context: List[Document]
@@ -201,13 +203,27 @@ def generate(state: State):
 
     docs_text = "\n\n".join(docs_content)
 
-    # Format the full prompt correctly
-    messages = rag_prompt.format_messages({
+    # Always pull user info from session
+    user_info = st.session_state.get("last_payload")
+    user_context = ""
+    if user_info:
+        user_context = (
+            f"User Profile:\n"
+            f"- Job: {user_info['inputs']['job']}\n"
+            f"- Seniority: {user_info['inputs']['seniority']}\n"
+            f"- City: {user_info['inputs']['city']}\n"
+            f"- Accommodation: {user_info['inputs']['accommodation_type']}\n"
+            f"- Age: {user_info['extra']['age']}\n"
+            f"- Net Salary (after tax): €{user_info['net tax']:,.0f}\n"
+            f"- Essential Costs: €{user_info['outputs']['essential_costs']:,.0f}\n"
+            f"- Disposable Income: €{user_info['net tax'] - user_info['outputs']['essential_costs']:,.0f}\n"
+        )
+
+    messages = rag_prompt.invoke({
         "question": state["question"],
         "context": docs_text,
-        "user_info": state.get("user_info", "")
+        "user_info": user_context   # <-- FIXED
     })
-
     response = llm.invoke(messages)
 
     return {
@@ -215,22 +231,23 @@ def generate(state: State):
         "sources": sorted(set(sources_used))
     }
 
+graph_builder = StateGraph(State).add_sequence([retrieve, generate])
+graph_builder.add_edge(START, "retrieve")
+rag_chain = graph_builder.compile()
 
-    graph_builder = StateGraph(State).add_sequence([retrieve, generate])
-    graph_builder.add_edge(START, "retrieve")
-    rag_chain = graph_builder.compile()
-else:
-    rag_chain = None
 
 def rag_answer(question: str):
     if not rag_chain:
         return {"answer": "⚠️ RAG not available. Please check setup.", "sources": []}
+
     try:
         result = rag_chain.invoke({"question": question})
-        return result  # <-- keep the dict {answer: ..., sources: [...]}
+        return {
+            "answer": result.get("answer", ""),
+            "sources": result.get("sources", []),
+        }
     except Exception as e:
         return {"answer": f"⚠️ RAG error: {e}", "sources": []}
-
 
 # -------------------- HELPER FUNCTIONS --------------------
 
