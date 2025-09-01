@@ -89,7 +89,8 @@ def get_estimates(
             car_month = float(row[0] or 0)
 
     essential_costs = get_essential_costs(con, city, accommodation_type, car_type)
-
+    utilities_breakdown = get_utilities_breakdown(con)
+    health_insurance_value = get_health_insurance_value(con)
 
     return {
         "inputs": {
@@ -103,7 +104,9 @@ def get_estimates(
             "salary": {"min": sal_min, "avg": sal_avg, "max": sal_max},
             "rent":   {"min": rent_min, "avg": rent_avg, "max": rent_max},
             "car_total_per_month": car_month,
-            "essential_costs": essential_costs
+            "essential_costs": essential_costs,
+            "health_insurance_value": health_insurance_value,
+            "utilities_breakdown": utilities_breakdown,
         },
     }
 
@@ -143,3 +146,30 @@ def get_essential_costs(con: sqlite3.Connection, city: str, accommodation_type: 
     total += hi or 0
 
     return total
+
+def get_utilities_breakdown(con: sqlite3.Connection) -> Dict[str, float]:
+    """
+    Devuelve un dict con los valores de utilities separados por categoría:
+    { "Water": 25.9, "Gas": 50.0, "Electricity": 80.0 }
+    """
+    rows = con.execute("""
+        SELECT utility_type, SUM(amount)
+        FROM utilities
+        GROUP BY utility_type;
+    """).fetchall()
+
+    breakdown = {row[0]: row[1] for row in rows}
+    return breakdown
+
+
+def get_health_insurance_value(con: sqlite3.Connection):
+    """
+    Devuelve el valor de health insurance (si solo hay un registro en la tabla).
+    """
+    row = con.execute("""
+        SELECT amount
+        FROM health_insurance
+        LIMIT 1;
+    """).fetchone()
+
+    return row[0]
