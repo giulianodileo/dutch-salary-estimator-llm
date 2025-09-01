@@ -3,7 +3,7 @@
 #####################################################################
 
 def apply_nl_taxes_2025(taxable_income: float) -> float:
-    """Apply Dutch 2025 Box 1 tax rates to taxable income. Returns net annual (on taxable part only)."""
+    """Apply Dutch 2025 Box 1 tax rates to taxable income. Returns net annual."""
     brackets = [
         (38441, 0.3582),
         (76817, 0.3748),
@@ -23,7 +23,7 @@ def apply_nl_taxes_2025(taxable_income: float) -> float:
         if remaining <= 0:
             break
 
-    return taxable_income - tax  # net after taxes, taxable portion only
+    return taxable_income - tax  # net annual
 
 #####################################################################
 # MAIN FUNCTION                                                     #
@@ -64,17 +64,16 @@ def expat_ruling_calc(age: int, gross_salary: float, master_dpl: bool = False,
     # --- Apply ruling + taxes ---
     for i, year in enumerate(years_sequence):
         if eligible:
-            if i == 0:  # 2026 → 30% ruling
+            if i == 0:  # 2026
                 taxable = gross_salary * 0.70
-                net = apply_nl_taxes_2025(taxable) + (gross_salary * 0.30)
-            elif 1 <= i <= 4:  # 2027–2030 → 27% ruling
+            elif 1 <= i <= 4:  # 2027–2030
                 taxable = gross_salary * 0.73
-                net = apply_nl_taxes_2025(taxable) + (gross_salary * 0.27)
-            else:  # after ruling expires
-                net = apply_nl_taxes_2025(gross_salary)
+            else:  # after 2030
+                taxable = gross_salary
         else:
-            net = apply_nl_taxes_2025(gross_salary)
+            taxable = gross_salary
 
+        net = apply_nl_taxes_2025(taxable)
         my_dict[year] = net
 
     return my_dict
@@ -84,7 +83,6 @@ def expat_ruling_calc(age: int, gross_salary: float, master_dpl: bool = False,
 #####################################################################
 
 if __name__ == "__main__":
-    # Example: 71,040 gross annual (≈ €5,920/month), age 32, no master
-    result = expat_ruling_calc(age=32, gross_salary=71040, master_dpl=False)
+    result = expat_ruling_calc(age=32, gross_salary=70000, master_dpl=False)
     for year, net in result.items():
         print(year, f"€{net:,.0f}")
