@@ -1,3 +1,13 @@
+---
+
+topic: housing
+subcategory: utilities
+country: Netherlands
+year: 2025
+data_type: recurring_cost
+source: Nibud, Energievergelijk.nl
+----------------------------------
+
 # Utilities in the Netherlands (electricity, gas, and water)
 
 In the Netherlands, gas, electricity, and water are recurring monthly expenses that households need to budget for.
@@ -26,7 +36,15 @@ An eight-minute shower uses about 65 liters of hot water and costs around €0.5
 
 There are many ways to keep energy and water bills under control, even without big investments. Smart meters, thermostats, and apps can help track consumption, while organizations such as Milieu Centraal provide comparison tools and practical saving tips. Simple changes—like shorter showers, lowering wash temperatures, or air-drying clothes—can make a noticeable difference on the bill.
 
+---
+
+## Calculator Context
+
+The calculator estimates **average monthly utility costs** separately, based on household size and national reference data (e.g., Nibud). This file provides **explanatory context** (how costs are structured, why they vary), not specific monthly values, to avoid conflicts with the calculator’s numeric outputs.
+
+---
+
 ## Sources and References
 
-- Nibud (National Institute for Family Finance Information)
-- For price comparison, the user can check Energievergelijk.nl (https://www.energievergelijk.nl/english), which is fully available in English.
+* Nibud (National Institute for Family Finance Information) ([https://www.nibud.nl/onderwerpen/uitgaven/kosten-energie-water] (https://www.energievergelijk.nl/english))
+* Energievergelijk.nl ([https://www.energievergelijk.nl/english](https://www.energievergelijk.nl/english)) — independent comparison site available in English
