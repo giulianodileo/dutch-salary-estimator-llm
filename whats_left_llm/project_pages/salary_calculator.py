@@ -4,8 +4,8 @@ import streamlit as st
 import sqlite3
 from pathlib import Path
 from typing import List, Dict, Any
-from calculator_core import get_estimates, DB_URI
-from calculate_30_rule import expat_ruling_calc
+from whats_left_llm.calculator_core import get_estimates, DB_URI
+from whats_left_llm.calculate_30_rule import expat_ruling_calc
 
 COLOR_PALETTE = ["#2E91E5", "#E15F99", "#1CA71C", "#FB0D0D"]
 # -------------------- DB HELPERS --------------------
@@ -96,7 +96,8 @@ def render():
             res_tax = expat_ruling_calc(
                 age=extra["age"],
                 gross_salary=out['salary']['avg']*12,
-                master_dpl=extra["master_diploma"], duration=10
+                master_dpl=extra["master_diploma"],
+                duration=10
             )
 
             # First year values
@@ -119,6 +120,22 @@ def render():
             col2.metric("Net Salary (2026)", f"€{net_first_year:,.0f}")
             col3.metric("Essential Costs", f"€{out['essential_costs']:,.0f}")
             col4.metric("Disposable (2026)", f"€{disposable_first_year:,.0f}")
+
+            # st.write("Health Insurance:", out["health_insurance_value"])
+            # st.write("Water:", out["utilities_breakdown"]["Water"])
+            # st.write("Gas:", out["utilities_breakdown"]["Gas"])
+            # st.write("Electricity:", out["utilities_breakdown"]["Electricity"])
+            # st.write("Car:", out["car_total_per_month"])
+            # st.write("Rent:", out["rent"]["avg"])
+
+
+            # ---- Details con tabs: Inputs / Extra / Outputs ----
+            st.markdown("### Details")
+
+            # (opcional) también mostrar el JSON crudo
+            with st.expander("Raw payload (JSON)"):
+                import json
+                st.code(json.dumps(payload, indent=2), language="json")
 
 
         except ValueError as ve:
