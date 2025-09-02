@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from typing import List
+# This is to make sure
 
 def render_bar_chart_30_rule(salary_data: dict):
     """
