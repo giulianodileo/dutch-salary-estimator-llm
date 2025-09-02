@@ -2,6 +2,7 @@ import streamlit as st
 from pathlib import Path
 import asyncio
 import os
+import re
 
 # -------------------- LLM + RAG --------------------
 from dotenv import load_dotenv
@@ -66,7 +67,6 @@ def load_vector_store():
         vector_store = InMemoryVectorStore(embeddings)
         vector_store.add_documents(all_splits)
 
-        st.sidebar.info(f"✅ RAG initialized with {len(docs)} docs → {len(all_splits)} chunks")
         return vector_store
 
     except Exception as e:
@@ -113,7 +113,18 @@ if HAS_LLM and llm and vector_store:
 
 # # --- Retrieval Pipeline ---
 
-# Step 1: Run similarity search with metadata filters
+# Step 1: Clean Markdown text (avoid mentions in the answer)
+def clean_text(text: str) -> str:
+    """Remove markdown headers, formatting, and excessive whitespace."""
+    # Remove markdown headers like ## Something
+    text = re.sub(r'^#+ .*$', '', text, flags=re.MULTILINE)
+    # Remove bold/italic markdown markers
+    text = re.sub(r'[*_`]', '', text)
+    # Collapse multiple newlines
+    text = re.sub(r'\n{2,}', '\n', text)
+    return text.strip()
+
+# Step 2: Run similarity search with metadata filters
 def retrieve_docs(query, vector_store, filters=None, k=3):
     """
     Retrieve relevant docs with optional metadata filtering.
@@ -127,18 +138,14 @@ def retrieve_docs(query, vector_store, filters=None, k=3):
 
 # Step 2: Compress docs into short summaries
 def compress_docs(docs, llm):
-    """
-    Summarize retrieved documents to reduce token usage.
-    Each doc is summarized into 3-4 sentences focusing on rules and numbers.
-    """
+    combined_text = "\n\n".join([clean_text(doc.page_content) for doc in docs])
     compression_prompt = PromptTemplate.from_template(
-        "Summarize the following text into 3-4 sentences, focusing only on rules, thresholds, and key numbers:\n\n{text}"
+        "Summarize the following text into 4-5 sentences in plain language. "
+        "Do not include section titles, bullet points, or references. "
+        "Keep only the essential rules, thresholds, and key numbers.\n\n{text}"
     )
-    compressed = []
-    for doc in docs:
-        summary = llm.invoke(compression_prompt.format(text=doc.page_content))
-        compressed.append(summary.content if hasattr(summary, "content") else str(summary))
-    return "\n\n".join(compressed)
+    summary = llm.invoke(compression_prompt.format(text=combined_text))
+    return summary.content if hasattr(summary, "content") else str(summary)
 
 # Step 3: Prepare context for the LLM
 def prepare_context(query, vector_store, llm, filters=None):
@@ -179,6 +186,8 @@ def generate(state: State):
             f"- City: {user_info['inputs']['city']}\n"
             f"- Accommodation: {user_info['inputs']['accommodation_type']}\n"
             f"- Age: {user_info['extra']['age']}\n"
+            f"- Gross Salary (monthly): €{user_info['outputs']['salary']['avg']:,.0f}\n"
+            f"- Gross Salary (annually): €{user_info['outputs']['salary']['avg'] * 12:,.0f}\n"
             f"- Net Salary (calculated): €{user_info['net tax']:,.0f}\n"
             f"- Essential Costs: €{user_info['outputs']['essential_costs']:,.0f}\n"
             f"- Disposable Income (calculated): €{user_info['net tax'] - user_info['outputs']['essential_costs']:,.0f}\n"
@@ -218,12 +227,12 @@ def rag_answer(question: str):
 
 # -------------------- PAGE 2: LLM CHAT --------------------
 with st.container():
-    st.title("Ask Alex")
+    st.title("Ask Alex 🧞")
     st.info("Please note: always consult the Netherlands Tax Administration (Belastingdienst) for all updates regarding taxation.")
 
     faq = [
-        "Explain the 30% ruling in simple words?",
-        "How are the monthly costs for health insurance determined?",
+        "Explain the 30% ruling in simple words.",
+        "How's the housing market in the Netherlands?",
         "What are the costs of owning a car?"
     ]
     st.write(":bulb: Suggested questions:")

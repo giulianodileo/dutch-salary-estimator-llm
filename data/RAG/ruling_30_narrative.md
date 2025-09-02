@@ -25,8 +25,8 @@ The **30% ruling (Expat Scheme)** is a Dutch tax benefit for foreign employees w
 * You must be **recruited from abroad** and employed in the Netherlands.
 * You must possess **specific expertise**:
 
-  * Annual taxable salary ≥ **€46,660** (2025).
-  * If under 30 with a Dutch or equivalent master’s degree: ≥ **€35,468** (2025).
+  * Annual taxable salary ≥ **€66,657** (2025).
+  * If under 30 with a Dutch or equivalent master’s degree: ≥ **€50,668** (2025).
 * Scientific researchers and doctors in specialist training are always eligible, regardless of salary.
 * You must have lived **>150 km from the Dutch border for 16 of the 24 months** before starting employment (exceptions apply for returning expats with previous eligibility).
 * Employer and employee must agree on applying the scheme in writing.
