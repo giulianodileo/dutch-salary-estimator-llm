@@ -1,7 +1,3 @@
-# CHART TO DISPLAY NET DISPOSABLE INCOME AND OTHER #
-# CONSUMES DATA DICTIONARY WITH COMPONENTS         #
-####################################################
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
