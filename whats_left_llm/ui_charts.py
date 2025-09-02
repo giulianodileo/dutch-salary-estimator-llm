@@ -9,7 +9,6 @@ from typing import List
 def render_salary_projection_chart(df_proj: pd.DataFrame):
     """
     Render a line chart showing Net Monthly and Disposable Monthly income projections.
-
     Parameters:
     - df_proj: pd.DataFrame with columns:
         - 'Year' (int or str)
