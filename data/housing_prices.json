@@ -89,6 +89,17 @@
   },
   {
     "city": "Utrecht",
+    "accomodation": "Room",
+    "period": "monthly",
+    "currency": "EUR",
+    "min_amount": 625.0,
+    "max_amount": 1075.0,
+    "avg_amount": 845.0,
+    "source_url": "https://housinganywhere.com/rent-index-by-city",
+    "source_site": "HousingAnywhere"
+  },
+  {
+    "city": "Utrecht",
     "accomodation": "studio",
     "period": "monthly",
     "currency": "EUR",

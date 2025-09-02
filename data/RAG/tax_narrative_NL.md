@@ -16,9 +16,9 @@ A salary in the Netherlands is subject to **progressive income tax rates**, divi
 
 ### Key Tax Brackets (2025, below state pension age)
 
-* **Up to €38,441** → 35.82% (includes social security contributions)
-* **€38,441 – €76,817** → 37.48%
-* **Above €76,817** → 49.50%
+* **Up to €38,441**: the tax rate is 35.82% (includes social security contributions)
+* **€38,441 – €76,817**: the tax rate is 37.48%
+* **Above €76,817** the tax rate is 49.50%
 
 ### Calculation Method
 
@@ -60,32 +60,22 @@ For employees above pension age, AOW is not charged, which lowers the first-brac
 
 ---
 
-## Arbeidskorting (Labour Tax Credit)
+## Tax Credits (Not Applied in Calculator)
 
-* Purpose: Encourages employment by raising net income.
-* Applied automatically by employers in payroll.
-* **2025 values:**
+The Dutch system includes tax credits such as:
 
-  * Maximum: €5,599 (income ≤ €43,071)
-  * Gradual reduction above €43,071
+* **Arbeidskorting (Labour Tax Credit)**
+* **Algemene heffingskorting (General Tax Credit)**
 
----
+These credits reduce the amount of tax owed, especially for lower and middle incomes.
 
-## Algemene Heffingskorting (General Tax Credit)
-
-* Applies to all taxpayers in the Netherlands.
-* Reduces both income tax and social security contributions.
-* **2025 values:**
-
-  * Maximum: €3,068 (income ≤ €28,406)
-  * Gradual reduction above €28,406
-  * Zero at incomes ≥ €76,817
+**Important:** The current Salary Calculator implementation does **not** include these credits. As a result, disposable income estimates may appear lower than actual take-home pay in reality.
 
 ---
 
 ## Calculator Context
 
-* The calculator applies the **2025 progressive tax brackets** and **tax credits (arbeidskorting, algemene heffingskorting)** to estimate net salary.
+* The calculator applies the **2025 progressive tax brackets** only, without tax credits.
 * If the **30% ruling** applies, it reduces the **taxable base** before these brackets are applied.
 * Results show **disposable income** after payroll tax and common deductions.
 * For simplicity, the calculator uses **below pension age brackets** as the default, unless specified otherwise.
@@ -94,10 +84,10 @@ For employees above pension age, AOW is not charged, which lowers the first-brac
 
 ## Sources
 
-* Belastingdienst (Dutch Tax Authority) ([https://www.belastingdienst.nl/wps/wcm/connect/bldcontenten/belastingdienst/business/payroll_taxes/you_are_not_established_in_the_netherlands_are_you_required_to_withhold_payroll_taxes/when_you_are_going_to_withhold_payroll_taxes/calculating_payroll_taxes/rates/rates-2025/table-1-brackets-wage-tax-national-insurance-contributions-2025] (https://www.belastingdienst.nl/wps/wcm/connect/bldcontenten/belastingdienst/business/payroll_taxes/you_are_not_established_in_the_netherlands_are_you_required_to_withhold_payroll_taxes/when_you_are_going_to_withhold_payroll_taxes/calculating_payroll_taxes/rates/rates-2025/table-1-brackets-wage-tax-national-insurance-contributions-2025))
+* Belastingdienst (Dutch Tax Authority)
 
 ---
 
 ### Disclaimer
 
-This document provides **general reference values**. Individual tax outcomes depend on personal circumstances, eligibility for allowances, and employer arrangements. Always consult the Belastingdienst for official guidance.
+This document provides **general reference values**. Individual tax outcomes depend on personal circumstances, eligibility for allowances, and employer arrangements. The Salary Calculator currently **does not apply arbeidskorting or algemene heffingskorting**, which means estimates are conservative compared to official net salary outcomes. Always consult the Belastingdienst for official guidance.

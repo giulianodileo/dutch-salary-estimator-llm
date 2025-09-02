@@ -7,6 +7,38 @@ from typing import List, Dict, Any
 from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule import expat_ruling_calc
 
+
+def add_ui_css():
+    st.markdown(
+        """
+        <style>
+        /* Igualamos el look del form */
+        [data-testid="stForm"] {
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        /* Caja reutilizable para cualquier sección */
+        .st-card {
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+        }
+
+        .st-card-title {
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
 COLOR_PALETTE = ["#2E91E5", "#E15F99", "#1CA71C", "#FB0D0D"]
 # -------------------- DB HELPERS --------------------
 def _sqlite_path(db_uri: str) -> str:
@@ -48,7 +80,7 @@ if not any(opts.values()):
 
 # -------------------- PAGE 1: SALARY CALCULATOR --------------------
 
-st.title("Salary Calculator")
+st.title("Money in your pocket")
 
 # Load options from the database
 opts = load_options(DB_URI)
@@ -56,43 +88,37 @@ if not any(opts.values()):
     st.error("I cannot find the database, or the tables are empty. Please ensure that you have created it and uploaded the JSONs.")
     st.stop()
 
-
-# st.markdown(
-#     """
-#     <style>
-#     .big-labels label {
-#         font-size: 200px !important;
-#         font-weight: 600 !important;
-#     }
-#     </style>
-#     """,
-#     unsafe_allow_html=True
-# )
-# --------------------- INPUTS -------------------
-# Aquí aplicamos la clase "input-details" a un contenedor
-# st.markdown("<div class='big-labels'>", unsafe_allow_html=True)
-with st.container():
-    user_name = st.text_input("What's your name?", "")
+with st.container(border=True):
+    col1, col2 = st.columns(2)
+    with col1:
+        user_name = st.text_input("Name", "")
     if user_name:
         st.success(f"Welcome, {user_name}! 😎")
+    with col2:
+        age = st.number_input("Age", min_value=18, max_value=70, step=1)
+    with col1:
+        job = st.selectbox("Job", opts["jobs"])
+    with col2:
+        seniority = st.selectbox("Seniority", opts["seniorities"])
+    with col1:
+        city = st.selectbox("City", opts["cities"])
+    with col2:
+        accommodation_type = st.selectbox("Accommodation", opts["accommodations"])
+    with col1:
+        has_masters_nl = st.selectbox("Master's degree", ["Yes", "No"])
+    with col2:
+        car_type = st.selectbox("Car type:", ["No"] + opts["cars"])
+        if car_type == "No":
+            car_cost = 0
+        else:
+            car_cost = car_type
+    submitted = st.button("What's left")
 
-    age = st.number_input("What is your age?", min_value=18, max_value=70, step=1)
-
-    has_masters_nl = False
-    if age < 30:
-        choice = st.radio("Do you have a Master’s Degree?", ["Yes", "No"])
-        has_masters_nl = (choice == "Yes")
-
-    job = st.selectbox("Job", opts["jobs"])
-    seniority = st.selectbox("Seniority", opts["seniorities"])
-    city = st.selectbox("City", opts["cities"])
-    accommodation_type = st.selectbox("Accommodation", opts["accommodations"])
-    has_car = st.radio("Do you have a car?", ["No", "Yes"])
-
-    car_type = st.selectbox("Select your car type:", opts["cars"]) if has_car == "Yes" else None
-
-    submitted = st.button("Calculate")
-
+def check_degree_requirement(age: int, has_degree: str) -> bool:
+    if age < 30 and has_degree == "Yes":
+        return True
+    return False
+degre_value = check_degree_requirement(age, has_masters_nl)
 # st.markdown("</div>", unsafe_allow_html=True)
 # --------------------- INPUTS ---------------------------
 if submitted:
@@ -102,14 +128,14 @@ if submitted:
             seniority=seniority,
             city=city,
             accommodation_type=accommodation_type,
-            car_type=car_type,
+            car_type=car_cost,
             db_uri=DB_URI
         )
         out = res["outputs"]
 
         extra = {
             "age": int(age),
-            "master_diploma": bool(has_masters_nl)}
+            "master_diploma": bool(degre_value)}
 
         res_tax = expat_ruling_calc(
             age=extra["age"],
@@ -131,35 +157,37 @@ if submitted:
             "net tax": net_first_year
         }
         st.session_state["last_payload"] = payload
-
+        car_value = payload["outputs"]["car_total_per_month"]
         # ---- Metrics ----
-        with st.container():
-            st.header("Salary informatio")
-            col1, col2, col3, col4 = st.columns(4)
+        add_ui_css()
+        with st.container(border=True):
+            st.markdown("### Whats left")
+            col1, col2 = st.columns(2)
             col1.metric("Gross Salary", f"€{out['salary']['avg']:,.0f}")
-            col2.metric("Net Salary", f"€{net_first_year:,.0f}")
-            col3.metric("Essential Costs", f"€{out['essential_costs']:,.0f}")
-            col4.metric("Disposable", f"€{disposable_first_year:,.0f}")
+            col1.metric("Net Salary", f"€{net_first_year:,.0f}")
+            col2.metric("Costs", f"€{out['essential_costs']:,.0f}")
+            col2.metric("Money in your pocket", f"€{disposable_first_year:,.0f}")
+
         with st.container():
-            st.header("Cost details")
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Health Insurance", f"€{out['health_insurance_value']:,.0f}")
-            col2.metric("Car", f"€{net_first_year:,.0f}")
-            col3.metric("Rent", f"€{out['essential_costs']:,.0f}")
-        with st.container():
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Electricity", f"€{out['utilities_breakdown']['Electricity']:,.0f}")
-            col2.metric("Water", f"€{out['utilities_breakdown']['Water']:,.0f}")
-            col3.metric("Gas", f"€{out['utilities_breakdown']['Gas']:,.0f}")
+            # st.markdown("### Cost details")
+            with st.expander("Watch your costs"):
+                col1, col2 = st.columns(2)
+                col1.metric("Rent", f"€{out['rent']['avg']:,.0f}")
+                col1.metric("Car", f"€{car_value:,.0f}")
+                col1.metric("Health Insurance", f"€{out['health_insurance_value']:,.0f}")
+                col2.metric("Gas", f"€{out['utilities_breakdown']['Gas']:,.0f}")
+                col2.metric("Electricity", f"€{out['utilities_breakdown']['Electricity']:,.0f}")
+                col2.metric("Water", f"€{out['utilities_breakdown']['Water']:,.0f}")
+
 
 
             # ---- Details con tabs: Inputs / Extra / Outputs ----
-        st.markdown("### Details")
+        # st.markdown("### Details")
 
-            # (opcional) también mostrar el JSON crudo
-        with st.expander("Raw payload (JSON)"):
-            import json
-            st.code(json.dumps(payload, indent=2), language="json")
+        #     # (opcional) también mostrar el JSON crudo
+        # with st.expander("Raw payload (JSON)"):
+        #     import json
+        #     st.code(json.dumps(payload, indent=2), language="json")
 
 
     except ValueError as ve:
@@ -167,4 +195,4 @@ if submitted:
     except Exception as e:
         st.error(f"Unexpected error: {e}")
 else:
-    st.info("Fill in the fields and press **Calculate**.")
+    st.info("Fill in the fields and press **What's left**.")
