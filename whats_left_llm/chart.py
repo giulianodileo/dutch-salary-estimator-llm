@@ -1,7 +1,3 @@
-# CHART TO DISPLAY NET DISPOSABLE INCOME AND OTHER #
-# CONSUMES DATA DICTIONARY WITH COMPONENTS         #
-####################################################
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -285,7 +281,8 @@ def chart_netincome(my_dict: dict, fixed_costs):
 
     sns.despine()
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    return fig
 
     # TESTING TERMINAL
 

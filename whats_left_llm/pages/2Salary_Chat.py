@@ -67,6 +67,7 @@ def load_vector_store():
         vector_store = InMemoryVectorStore(embeddings)
         vector_store.add_documents(all_splits)
 
+        # st.sidebar.info(f"✅ RAG initialized with {len(docs)} docs → {len(all_splits)} chunks")
         return vector_store
 
     except Exception as e:
