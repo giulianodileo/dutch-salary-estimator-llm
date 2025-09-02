@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import List, Dict, Any
 from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule import expat_ruling_calc
-from whats_left_llm.css import input_details
 
 COLOR_PALETTE = ["#2E91E5", "#E15F99", "#1CA71C", "#FB0D0D"]
 # -------------------- DB HELPERS --------------------
@@ -73,7 +72,6 @@ if not any(opts.values()):
 # Aquí aplicamos la clase "input-details" a un contenedor
 # st.markdown("<div class='big-labels'>", unsafe_allow_html=True)
 with st.container():
-    input_details()
     user_name = st.text_input("What's your name?", "")
     if user_name:
         st.success(f"Welcome, {user_name}! 😎")
