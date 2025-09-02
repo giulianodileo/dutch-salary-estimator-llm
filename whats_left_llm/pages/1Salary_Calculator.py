@@ -6,9 +6,12 @@ from pathlib import Path
 from typing import List, Dict, Any
 from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule import expat_ruling_calc
-
+from whats_left_llm.ui_charts import render_pie_chart_percent_only
 
 COLOR_PALETTE = ["#2E91E5", "#E15F99", "#1CA71C", "#FB0D0D"]
+
+
+
 # -------------------- DB HELPERS --------------------
 def _sqlite_path(db_uri: str) -> str:
     assert db_uri.startswith("sqlite:///")
@@ -153,7 +156,26 @@ if submitted:
                         subcol2.metric("Water", f"€{out['utilities_breakdown']['Water']:,.0f}")
 
                 with col2:
-                    col1.metric("Gross salary", f"€{out['salary']['avg']:,.0f}")
+                    # ------------------ Thabisso ---------------------------
+                    labels = ["Housing Costs", "Transportation", "Gas", "Electricity", "Water", "Health Insurance"]
+                    utilities = out['utilities_breakdown']
+                    values = [
+                        out['rent']['avg'],
+                        out['car_total_per_month'],
+                        utilities.get("Gas", 0),
+                        utilities.get("Electricity", 0),
+                        utilities.get("Water", 0),
+                        out['health_insurance_value']
+                    ]
+                    render_pie_chart_percent_only(labels, values, "Essential Living Costs Breakdown")
+                                # ---- Details con tabs: Inputs / Extra / Outputs ----
+        st.markdown("### Details")
+
+            # (opcional) también mostrar el JSON crudo
+        with st.expander("Raw payload (JSON)"):
+            import json
+            st.code(json.dumps(payload, indent=2), language="json")
+
 
     except ValueError as ve:
         st.warning(str(ve))
