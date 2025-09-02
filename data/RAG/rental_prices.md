@@ -37,7 +37,32 @@ This document provides structured context on **average rental prices, influencin
 
 ---
 
-## 3. Supply and Demand Dynamics
+## 3. Price Range per City and Accomodation Type (per month)
+
+* **Amsterdam**:
+  - Room: €730 - €1,200
+  - Studio: €900 - €1,300
+  - One-Bedroom Apartment: €1,500 - €2,500
+  - Two-Bedroom Apartment: €2,000 - €3,500
+* **Rotterdam**:
+  - Room: €620 - €1,030
+  - Studio: €800 - €1150
+  - One-Bedroom Apartment: €1,200 - €2,000
+  - Two-Bedroom Apartment: €2,050 - €2,600
+* **The Hague**:
+  - Room: €630 - €1,060
+  - Studio: €750 - €1,300
+  - One-Bedroom Apartment: €1,200 - €1,900
+  - Two-Bedroom Apartment: €1,500 - €2,400
+* **Utrecht**:
+  - Room: €625 - €1,075
+  - Studio: €900 - €1,400
+  - One-Bedroom Apartment: €1,300 - €2,200
+  - Two-Bedroom Apartment: €1,500 - €2,800
+
+---
+
+## 4. Supply and Demand Dynamics
 
 * **High demand**: Driven by population growth, international students, expats, remote workers, EU migration.
 * **Low supply**: Constrained by land scarcity, strict building regulations, preservation rules, and long permit processes.
@@ -45,9 +70,8 @@ This document provides structured context on **average rental prices, influencin
 
 ---
 
-## 4. Government Policies and Regulations
+## 5. Government Policies and Regulations
 
-* **Points-based system (WWS):** Applies to properties under \~€900/month (2025). Rent levels are regulated.
 * **Free-market rentals:** No caps; prices determined by demand.
 * **Recent changes:**
 
@@ -58,7 +82,7 @@ This document provides structured context on **average rental prices, influencin
 
 ---
 
-## 5. Economic Factors
+## 6. Economic Factors
 
 * **Inflation:** Reduces tenant spending power.
 * **Interest rates:** Higher mortgage costs push demand toward renting.
@@ -67,7 +91,7 @@ This document provides structured context on **average rental prices, influencin
 
 ---
 
-## 6. Property Quality and Amenities
+## 7. Property Quality and Amenities
 
 Premium features that increase rent prices:
 
@@ -82,7 +106,7 @@ Premium features that increase rent prices:
 
 ---
 
-## 7. Seasonal Variations
+## 8. Seasonal Variations
 
 * **August–September:** Peak season (students, internationals) → highest prices, low availability.
 * **November–February:** Off-peak → lower competition, better negotiation opportunities.
@@ -91,7 +115,7 @@ Premium features that increase rent prices:
 
 ---
 
-## 8. International Demand
+## 9. International Demand
 
 * Demand is increased by:
 
@@ -103,7 +127,7 @@ Premium features that increase rent prices:
 
 ---
 
-## 9. Future Outlook (2025 and Beyond)
+## 10. Future Outlook (2025 and Beyond)
 
 * Rental prices expected to **continue rising**, but possibly at slower rates.
 * Influences include:
@@ -116,7 +140,7 @@ Premium features that increase rent prices:
 
 ---
 
-## 10. FAQ: Rental Prices Netherlands
+## 11. FAQ: Rental Prices Netherlands
 
 **What determines rent prices in the Netherlands?**
 Location, property size/quality, supply and demand, government policy, and economic factors.
@@ -124,23 +148,13 @@ Location, property size/quality, supply and demand, government policy, and econo
 **Why is rent high in Amsterdam?**
 High demand, international appeal, limited supply, strict construction rules.
 
-**What is the average rent in Amsterdam for a 1-bedroom apartment?**
-Between €1,500–€2,500/month in 2025.
-
-**How much do students pay for housing?**
-Student rooms/studios: €400–€1,200/month, depending on facilities and city.
 
 **Is rent cheaper outside Amsterdam?**
 Yes, rents in cities like Rotterdam, Groningen, or Eindhoven can be 30–40% lower.
 
-**What are the 2025 rent increase rules?**
-
-* Social housing: capped increases.
-* Free-market rentals: fewer restrictions.
-
 ---
 
-## 11. Key Takeaways
+## 12. Key Takeaways
 
 * Amsterdam = highest rents; Rotterdam, Utrecht, The Hague = mid-range; smaller cities cheaper.
 * Supply shortages and strong demand keep prices high.
@@ -161,4 +175,4 @@ Yes, rents in cities like Rotterdam, Groningen, or Eindhoven can be 30–40% low
 
 ### Disclaimer
 
-The rental prices presented here are averages and ranges. Actual costs vary by property, city, and timing. Disposable income calculations in the app subtract **typical monthly rent ranges**, but your real expenses may differ depending on your exact situation.
+The rental prices presented here are **market ranges**. The Salary Calculator app uses a **central average value within these ranges** for disposable income estimation. Actual costs vary by property, city, and timing, and may be higher or lower depending on your exact situation.
