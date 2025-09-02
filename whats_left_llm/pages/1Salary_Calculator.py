@@ -135,7 +135,7 @@ if submitted:
 
         # ---- Metrics ----
         with st.container(border=True):
-          
+
             st.markdown(
                 """
                 <style>
@@ -173,7 +173,19 @@ if submitted:
                         subcol2.metric("Water", f"€{out['utilities_breakdown']['Water']:,.0f}")
 
                 with col2:
-                  
+                                        # ------------------ Thabisso ---------------------------
+                    labels = ["Housing Costs", "Transportation", "Gas", "Electricity", "Water", "Health Insurance"]
+                    utilities = out['utilities_breakdown']
+                    values = [
+                        out['rent']['avg'],
+                        out['car_total_per_month'],
+                        utilities.get("Gas", 0),
+                        utilities.get("Electricity", 0),
+                        utilities.get("Water", 0),
+                        out['health_insurance_value']
+                    ]
+                    render_pie_chart_percent_only(labels, values, "Essential Living Costs Breakdown")
+
                     st.markdown(
                         """
                         <div style="
@@ -229,18 +241,7 @@ if submitted:
                 range=[3500, max(net_salaries) * 1.1] # X starts from 3500
                 )
         )
-                    # ------------------ Thabisso ---------------------------
-                    labels = ["Housing Costs", "Transportation", "Gas", "Electricity", "Water", "Health Insurance"]
-                    utilities = out['utilities_breakdown']
-                    values = [
-                        out['rent']['avg'],
-                        out['car_total_per_month'],
-                        utilities.get("Gas", 0),
-                        utilities.get("Electricity", 0),
-                        utilities.get("Water", 0),
-                        out['health_insurance_value']
-                    ]
-                    render_pie_chart_percent_only(labels, values, "Essential Living Costs Breakdown")
+
                                 # ---- Details con tabs: Inputs / Extra / Outputs ----
         st.markdown("### Details")
 
