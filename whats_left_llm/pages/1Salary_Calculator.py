@@ -6,95 +6,12 @@ from pathlib import Path
 from typing import List, Dict, Any
 from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule import expat_ruling_calc
-
-st.markdown(
-        """
-        <style>
-        /* Sidebar en azul oscuro + texto claro */
-        section[data-testid="stSidebar"] {
-            background: #EAF6FD; /* si quieres sidebar claro usa este,
-                                    para sidebar oscuro usa: background:#023E8A; */
-        }
-        section[data-testid="stSidebar"] * {
-            color: #03045E;
-        }
-
-        /* Form y contenedores tipo “card” coherentes con el tema */
-        [data-testid="stForm"],
-        .st-card,
-        div[data-testid="stVerticalBlock"] > div:has(> div > div > div[role="group"]) {
-            background: #ADE8F4;                /* secondaryBackgroundColor */
-            border: 1px solid #90E0EF;
-            border-radius: 12px;
-            padding: 16px 18px;
-        }
-
-        /* Expander: header y borde */
-        details[data-testid="stExpander"] {
-            background: #ADE8F4;
-            border: 1px solid #90E0EF;
-            border-radius: 12px;
-        }
-        details[data-testid="stExpander"] summary {
-            color: #03045E;
-            font-weight: 600;
-        }
-
-        /* Botón primario acorde a la paleta */
-        button[kind="primary"] {
-            background: #0077B6 !important;
-            color: #FFFFFF !important;
-            border: 1px solid #0096C7 !important;
-        }
-        button[kind="primary"]:hover {
-            background: #0096C7 !important;
-        }
-
-        /* Métricas: color de texto acorde */
-        [data-testid="stMetricLabel"] { color: #023E8A; font-weight: 600; }
-        [data-testid="stMetricValue"] { color: #03045E; }
-
-        /* Enlaces y focos */
-        a { color: #0077B6; }
-        .st-emotion-cache-1xarl3l:focus, *:focus-visible { outline-color: #00B4D8; }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-def add_ui_css():
-    st.markdown(
-        """
-        <style>
-        /* Igualamos el look del form */
-        [data-testid="stForm"] {
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-            border-radius: 12px;
-            padding: 16px 18px;
-        }
-
-        /* Caja reutilizable para cualquier sección */
-        .st-card {
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-            border-radius: 12px;
-            padding: 16px 18px;
-            margin-bottom: 16px;
-        }
-
-        .st-card-title {
-            margin: 0 0 8px 0;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+from whats_left_llm.ui_charts import render_pie_chart_percent_only
 
 COLOR_PALETTE = ["#2E91E5", "#E15F99", "#1CA71C", "#FB0D0D"]
+
+
+
 # -------------------- DB HELPERS --------------------
 def _sqlite_path(db_uri: str) -> str:
     assert db_uri.startswith("sqlite:///")
@@ -217,8 +134,8 @@ if submitted:
         car_value = payload["outputs"]["car_total_per_month"]
 
         # ---- Metrics ----
-        add_ui_css()
         with st.container(border=True):
+          
             st.markdown(
                 """
                 <style>
@@ -233,6 +150,7 @@ if submitted:
                 """,
                 unsafe_allow_html=True
             )
+
             st.markdown("#### Whats left")
             col1, col2 = st.columns(2)
             col1.metric("Gross salary", f"€{out['salary']['avg']:,.0f}")
@@ -255,6 +173,7 @@ if submitted:
                         subcol2.metric("Water", f"€{out['utilities_breakdown']['Water']:,.0f}")
 
                 with col2:
+                  
                     st.markdown(
                         """
                         <div style="
@@ -310,6 +229,25 @@ if submitted:
                 range=[3500, max(net_salaries) * 1.1] # X starts from 3500
                 )
         )
+                    # ------------------ Thabisso ---------------------------
+                    labels = ["Housing Costs", "Transportation", "Gas", "Electricity", "Water", "Health Insurance"]
+                    utilities = out['utilities_breakdown']
+                    values = [
+                        out['rent']['avg'],
+                        out['car_total_per_month'],
+                        utilities.get("Gas", 0),
+                        utilities.get("Electricity", 0),
+                        utilities.get("Water", 0),
+                        out['health_insurance_value']
+                    ]
+                    render_pie_chart_percent_only(labels, values, "Essential Living Costs Breakdown")
+                                # ---- Details con tabs: Inputs / Extra / Outputs ----
+        st.markdown("### Details")
+
+            # (opcional) también mostrar el JSON crudo
+        with st.expander("Raw payload (JSON)"):
+            import json
+            st.code(json.dumps(payload, indent=2), language="json")
 
         st.plotly_chart(fig, use_container_width=True)
 

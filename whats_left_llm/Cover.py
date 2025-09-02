@@ -12,6 +12,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 
-st.title("Home")
-st.info("Home")
+st.markdown(
+    """
+    <h1 style='text-align: center; font-size: 64px; font-weight: 800; color: #0B3A6F;'>
+        How much do you have
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <h1 style='text-align: center; font-size: 64px; font-weight: 800; color: #0B3A6F;'>
+        in your pocket?
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
