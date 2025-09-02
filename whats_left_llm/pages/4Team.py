@@ -86,28 +86,28 @@ with st.container():
 with st.container():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        circular_image("whats_left_llm/giuliano.jpeg", size=140, border_px=0, border_color="#FFFFFF")
+        circular_image("whats_left_llm/images/giuliano.jpeg", size=140, border_px=0, border_color="#FFFFFF")
         st.markdown("<br>", unsafe_allow_html=True)
         st.write(
             "<p style='text-align: center;'>Giuliano Di Leo</p>",
             unsafe_allow_html=True
         )
     with col2:
-        circular_image("whats_left_llm/thabiso.jpeg", size=140, border_px=0, border_color="#FFFFFF")
+        circular_image("whats_left_llm/images/thabiso.jpeg", size=140, border_px=0, border_color="#FFFFFF")
         st.markdown("<br>", unsafe_allow_html=True)
         st.write(
             "<p style='text-align: center;'>Thabiso Mokoena</p>",
             unsafe_allow_html=True
         )
     with col3:
-        circular_image("whats_left_llm/alex.jpeg", size=140, border_px=0, border_color="#FFFFFF")
+        circular_image("whats_left_llm/images/alex.jpeg", size=140, border_px=0, border_color="#FFFFFF")
         st.markdown("<br>", unsafe_allow_html=True)
         st.write(
             "<p style='text-align: center;'>Alex Zeibel</p>",
             unsafe_allow_html=True
         )
     with col4:
-        circular_image("whats_left_llm/andres.jpeg", size=140, border_px=0, border_color="#FFFFFF")
+        circular_image("whats_left_llm/images/andres.jpeg", size=140, border_px=0, border_color="#FFFFFF")
         st.markdown("<br>", unsafe_allow_html=True)
         st.write(
             "<p style='text-align: center;'>Andres Publio Gentile</p>",
@@ -118,4 +118,4 @@ with st.container():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
-    square_image("whats_left_llm/lewagon.png", width=200, height= 62, border_px=0, border_color="#FFFFFF", radius=8)
+    square_image("whats_left_llm/images/lewagon.png", width=200, height= 62, border_px=0, border_color="#FFFFFF", radius=8)
