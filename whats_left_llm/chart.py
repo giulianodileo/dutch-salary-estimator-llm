@@ -285,7 +285,8 @@ def chart_netincome(my_dict: dict, fixed_costs):
 
     sns.despine()
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    return fig
 
     # TESTING TERMINAL
 
