@@ -244,9 +244,18 @@ with st.container():
             st.success(result["answer"])
             # Optional: print("Retrieved sources:", result.get("sources"))
 
-    user_input = st.text_area("Or type your own question:", "")
-    if st.button("Ask") and user_input:
+    # user_input = st.text_area("Or type your own question:", "")
+    # if st.button("Ask") and user_input:
+    #     with st.spinner("Thinking..."):
+    #         result = rag_answer(user_input)
+    #     st.success(result["answer"])
+    #     # Optional: print("Retrieved sources:", result.get("sources"))
+
+    # The above commented code enables submitting questions by clicking the "Ask" button
+    # The following code enables submitting the question by pressing Enter
+
+    user_input = st.text_input("Or type your own question:")
+    if user_input:
         with st.spinner("Thinking..."):
             result = rag_answer(user_input)
         st.success(result["answer"])
-        # Optional: print("Retrieved sources:", result.get("sources"))
