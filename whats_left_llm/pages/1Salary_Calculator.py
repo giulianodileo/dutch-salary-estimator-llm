@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule import expat_ruling_calc
-from whats_left_llm.ui_charts import render_pie_chart_percent_only
+from whats_left_llm.ui_charts import render_pie_chart_percent_only, render_bar_chart_giuliano
 
 
 # -------------------- DB HELPERS --------------------
@@ -182,74 +182,17 @@ if submitted:
                         out['health_insurance_value']
                     ]
                     render_pie_chart_percent_only(labels, values, "Essential Living Costs Breakdown")
-
-                    st.markdown(
-                        """
-                        <div style="
-                            background-color: #ff4d4d;
-                            padding: 10px;
-                            border-radius: 10px;
-                            height: 100%;
-                        ">
-                            <h3 style="color:white;">⚠️ Alerta</h3>
-                            <p style="color:white;">Este es un contenedor pintado de rojo</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-        # ---- BAR CHART: Net salary evolution (2026–2031) ----
-        import plotly.express as px
-
-        years = [2026, 2027, 2028, 2029, 2030, 2031]
-        net_salaries = []
-
-        for y in years:
-            if y in res_tax:
-                net_salaries.append(res_tax[y] / 12)  # monthly net salary
-            elif y >= 2031:
-                normal_net = res_tax[max(res_tax.keys())] / 12
-                net_salaries.append(normal_net)
-
-        labels = [
-            "30% ruling (2026)",
-            "27% ruling (2027)",
-            "27% ruling (2028)",
-            "27% ruling (2029)",
-            "27% ruling (2030)",
-            "Normal taxes (2031+)"
-        ]
-
-        COLOR_PALETTE = ["#02315A", "#1C6EB6", "#61AFF3"]
-
-        fig = px.bar(
-            x=labels,
-            y=net_salaries,
-            text=[f"€{val:,.0f}" for val in net_salaries],
-            labels={"x": "Year & Ruling", "y": "Net Salary (per month)"},
-            color=labels,
-            color_discrete_sequence=COLOR_PALETTE
-        )
-
-        fig.update_traces(textposition="outside")
-        fig.update_layout(
-            title="Impact of 30% Ruling on Net Salary (2026–2031)",
-            showlegend=False,
-            yaxis=dict(
-                tickformat="€,.0f",
-                range=[3500, max(net_salaries) * 1.1] # X starts from 3500
-                )
-        )
+                    render_bar_chart_giuliano(res_tax, age, out['salary']['avg']*12, degre_value)
 
                                 # ---- Details con tabs: Inputs / Extra / Outputs ----
-        st.markdown("### Details")
+        # st.markdown("### Details")
 
-            # (opcional) también mostrar el JSON crudo
-        with st.expander("Raw payload (JSON)"):
-            import json
-            st.code(json.dumps(payload, indent=2), language="json")
+        #     # (opcional) también mostrar el JSON crudo
+        # with st.expander("Raw payload (JSON)"):
+        #     import json
+        #     st.code(json.dumps(payload, indent=2), language="json")
 
-        st.plotly_chart(fig, use_container_width=True)
+
 
     except ValueError as ve:
         st.warning(str(ve))
