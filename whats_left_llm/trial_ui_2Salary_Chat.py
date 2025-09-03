@@ -14,7 +14,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.vectorstores import InMemoryVectorStore
 from typing_extensions import List, TypedDict
 from langgraph.graph import START, StateGraph
-from whats_left_llm.ui_functions import apply_chat_styling
+from whats_left_llm.ui_functions import apply_calculator_styling
 
 load_dotenv()
 
@@ -30,7 +30,7 @@ except ImportError:
     HAS_LLM = False
 
 # ----- Page Style -----
-apply_chat_styling()
+apply_calculator_styling()
 
 # -------------------- LLM LOADER --------------------
 @st.cache_resource(show_spinner=True)
