@@ -83,7 +83,9 @@ def render_pie_chart_percent_only(labels: List[str], values: List[float]):
     # Update traces to show percentages and set text color
     fig.update_traces(
         textinfo="percent",
-        textfont_color="white",
+        textfont_color="black",
+        # textposition='outside',
+        insidetextorientation='radial',
         hovertemplate="<b>%{label}</b><br>€%{value:,.0f}<br>%{percent}<extra></extra>"
     )
     fig.update_traces(textinfo="percent", textfont_color="white")
