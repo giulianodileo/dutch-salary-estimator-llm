@@ -8,9 +8,6 @@ from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule import expat_ruling_calc
 from whats_left_llm.ui_charts import render_pie_chart_percent_only
 
-COLOR_PALETTE = ["#2E91E5", "#E15F99", "#1CA71C", "#FB0D0D"]
-
-
 
 # -------------------- DB HELPERS --------------------
 def _sqlite_path(db_uri: str) -> str:
@@ -201,7 +198,7 @@ if submitted:
                         unsafe_allow_html=True
                     )
 
-        # ---- NEW BAR CHART: Net salary evolution (2026–2031) ----
+        # ---- BAR CHART: Net salary evolution (2026–2031) ----
         import plotly.express as px
 
         years = [2026, 2027, 2028, 2029, 2030, 2031]
@@ -222,6 +219,8 @@ if submitted:
             "27% ruling (2030)",
             "Normal taxes (2031+)"
         ]
+
+        COLOR_PALETTE = ["#02315A", "#1C6EB6", "#61AFF3"]
 
         fig = px.bar(
             x=labels,
