@@ -75,16 +75,17 @@ def expat_ruling_calc(age: int, gross_salary: float, master_dpl: bool = False,
         else:
             net = apply_nl_taxes_2025(gross_salary)
 
-        my_dict[year] = net
+        my_dict[year] = taxable
 
     return my_dict
 
 #####################################################################
 # TESTING                                                           #
 #####################################################################
+#####################################################################
 
 if __name__ == "__main__":
     # Example: 71,040 gross annual (≈ €5,920/month), age 32, no master
-    result = expat_ruling_calc(age=32, gross_salary=71040, master_dpl=False)
+    result = expat_ruling_calc(age=32, gross_salary=74520, master_dpl=True)
     for year, net in result.items():
         print(year, f"€{net:,.0f}")
