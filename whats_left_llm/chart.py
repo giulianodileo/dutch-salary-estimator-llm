@@ -407,14 +407,15 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
     fig = go.Figure()
 
     # Define a clean color palette
-    COLOR_PALETTE = ["#1C6EB6", "#61AFF3", "#02315A"]
+    COLOR_PALETTE = ["#1C6EB6", "#61AFF3","#61AFF3", "#61AFF3", "#61AFF3", "#ADE8F4"]
+
 
     # Add the bars for each category
     fig.add_trace(go.Bar(
         x=plot_df['Custom Label'],
         y=plot_df['Netto Disposable'],
         name='Net Disposable Income',
-        marker_color=COLOR_PALETTE[0],
+        marker_color=COLOR_PALETTE,
         hovertemplate='Net Disposable Income: €%{y:,.0f}<extra></extra>'
     ))
 
