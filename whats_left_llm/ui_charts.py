@@ -6,7 +6,6 @@ from typing import List
 import plotly.express as px
 # This is to make sure
 
-
 # def render_pie_chart_percent_only(labels: List[str], values: List[float]):
 #     """
 #     Render a donut pie chart showing percentage breakdown of essential living costs.
@@ -87,6 +86,9 @@ def render_pie_chart_percent_only(labels: List[str], values: List[float]):
         textfont_color="white",
         hovertemplate="<b>%{label}</b><br>€%{value:,.0f}<br>%{percent}<extra></extra>"
     )
+    fig.update_traces(textinfo="percent", textfont_color="white")
+
+    fig.update_layout(template="plotly_white")
 
     # Update layout to use a clean template
     fig.update_layout(

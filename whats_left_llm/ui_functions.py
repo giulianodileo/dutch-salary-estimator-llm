@@ -369,3 +369,78 @@ def apply_chat_styling():
     #MainMenu { visibility: hidden !important; }
     </style>
     """, unsafe_allow_html=True)
+
+# ---------- CALCULATOR STYLING --------- #
+
+def apply_calculator_styling():
+    """Apply blue theme styling for Salary Calculator page (with transparent charts)"""
+    st.markdown("""
+    <style>
+    /* Background + header */
+    header[data-testid="stHeader"] {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%) !important;
+        border-bottom: none !important;
+    }
+    header[data-testid="stHeader"] .st-emotion-cache-1dp5vir {
+        background: transparent !important;
+    }
+    .stApp {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%) !important;
+        min-height: 100vh !important;
+    }
+
+    /* Text */
+    h1, h2, h3, h4, h5, h6, p, span, div, .stMarkdown {
+        color: white !important;
+    }
+
+    /* Title */
+    h1 {
+        font-size: 3rem !important;
+        font-weight: 700 !important;
+        text-align: left !important;
+        margin-bottom: 2rem !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+    }
+
+    /* Info boxes */
+    .stAlert {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+    }
+
+    /* Buttons */
+    .stButton button {
+        background: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: 500 !important;
+        backdrop-filter: blur(8px) !important;
+        transition: all 0.3s ease !important;
+        font-size: 1rem !important;
+    }
+    .stButton button:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    }
+
+    /* Plotly chart containers (force transparent) */
+    div[data-testid="stPlotlyChart"] {
+        background: rgba(0,0,0,0) !important;
+    }
+    div[data-testid="stPlotlyChart"] iframe {
+        background: rgba(0,0,0,0) !important;
+    }
+
+    /* Hide Streamlit branding */
+    .stDeployButton { display: none !important; }
+    footer { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    </style>
+    """, unsafe_allow_html=True)
