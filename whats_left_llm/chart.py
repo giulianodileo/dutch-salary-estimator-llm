@@ -429,7 +429,7 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
                 xanchor='center',
                 yanchor='bottom',
                 showarrow=False,
-                font=dict(size=12, color='black'),
+                font=dict(size=12, color='white'),
                 yshift=10
             )
         )
