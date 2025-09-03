@@ -6,44 +6,54 @@ from typing import List
 import plotly.express as px
 # This is to make sure
 
-# ---------- Clear up charts background ----------
+# def render_pie_chart_percent_only(labels: List[str], values: List[float]):
+#     """
+#     Render a donut pie chart showing percentage breakdown of essential living costs.
 
-def style_chart(fig):
-    """Apply transparent background + white text to Plotly charts."""
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)",  # transparent outer background
-        plot_bgcolor="rgba(0,0,0,0)",   # transparent plotting area
-        font=dict(color="white"),       # keep text visible
-        legend=dict(font=dict(color="white"))  # legend text also white
-    )
-    return fig
+#     Parameters:
+#     - labels: list of category names (e.g., ["Housing Costs", "Transportation", ...])
+#     - values: list of numeric values corresponding to labels
+#     - title: chart title string
+#     """
+
+#     # Define the new color palette from your request
+#     COLOR_PALETTE = [
+#         "#48CAE4",
+#         "#00B4D8",
+#         "#0096C7",
+#         "#0077B6",
+#         "#023E8A",
+#         "#03045E",
+#     ]
+
+#     fig = px.pie(
+#         names=labels,
+#         values=values,
+#         hole=0.4,
+#         color_discrete_sequence=COLOR_PALETTE
+#     )
+
+#     # Update traces to show percentages and set text color
+#     fig.update_traces(
+#         textinfo="percent",
+#         textfont_color="white",
+#         # --- CAMBIO CLAVE: PERSONALIZAR EL HOVER ---
+#         hovertemplate="<b>%{label}</b><br>€%{value:,.0f}<br>%{percent}<extra></extra>"
+#         # Esto resultará en un hoverbox como:
+#         # **Health Insurance**
+#         # Amount: €157
+#         # Percentage: 8.36%
+#         # ---------------------------------------------
+#     )
+
+#     # Update layout to use a clean template
+#     fig.update_layout(
+#         template="plotly_white",
+#         showlegend=False)
+#     st.plotly_chart(fig, use_container_width=False)
 
 
-def render_bar_chart_30_rule(salary_data: dict):
-    """
-    Render a grouped bar chart comparing salary with and without 30% ruling.
-
-    Parameters:
-    - salary_data: dict with keys:
-        - "Year": list of years
-        - "Salary": list of salary values
-        - "Salary_30_rule": list of salary values with 30% ruling applied
-    """
-    df = pd.DataFrame(salary_data)
-    fig = go.Figure()
-    fig.add_trace(go.Bar(name='Salary', x=df["Year"], y=df["Salary"]))
-    fig.add_trace(go.Bar(name='Salary with 30% ruling', x=df["Year"], y=df["Salary_30_rule"]))
-    fig.update_layout(
-        barmode='group',
-        title="Salary Comparison with 30% Ruling",
-        yaxis_title="Monthly Salary (€)",
-        xaxis_title="Year",
-        template="plotly_white"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def render_pie_chart_percent_only(labels: List[str], values: List[float], title: str):
+def render_pie_chart_percent_only(labels: List[str], values: List[float]):
     """
     Render a donut pie chart showing percentage breakdown of essential living costs.
 
@@ -52,22 +62,47 @@ def render_pie_chart_percent_only(labels: List[str], values: List[float], title:
     - values: list of numeric values corresponding to labels
     - title: chart title string
     """
+
+    # Define the new color palette from your request
+    COLOR_PALETTE = [
+        "#48CAE4",
+        "#00B4D8",
+        "#0096C7",
+        "#0077B6",
+        "#023E8A",
+        "#03045E",
+    ]
+
     fig = px.pie(
         names=labels,
         values=values,
-        title=title,
         hole=0.4,
-        color=labels,
-        color_discrete_map={
-            "Housing Costs": "#E15F99",
-            "Transportation": "#1CA71C",
-            "Utilities": "#2E91E5",
-            "Other": "#FB0D0D"
-        }
+        color_discrete_sequence=COLOR_PALETTE
+    )
+
+    # Update traces to show percentages and set text color
+    fig.update_traces(
+        textinfo="percent",
+        textfont_color="white",
+        hovertemplate="<b>%{label}</b><br>€%{value:,.0f}<br>%{percent}<extra></extra>"
     )
     fig.update_traces(textinfo="percent", textfont_color="white")
 
     fig.update_layout(template="plotly_white")
+
+    # Update layout to use a clean template
+    fig.update_layout(
+        template="plotly_white",
+        showlegend=True,
+        height=280,
+    )
+    # --- CAMBIO CLAVE: USAR COLUMNAS PARA REDUCIR EL TAMAÑO ---
+    # Crea tres columnas para centrar el gráfico.
+    # La del medio tendrá el gráfico y las otras dos serán espacios en blanco.
+    # col1, col2, col3 = st.columns([0.1, 2, 0.1])
+
+    # with col2:
+    #     st.plotly_chart(fig, use_container_width=True) # Se mantiene en True para que llene su columna
     st.plotly_chart(fig, use_container_width=True)
 
 def render_bar_chart_giuliano(res_tax: dict, age, gross_salary, master_dpl):
@@ -81,7 +116,7 @@ def render_bar_chart_giuliano(res_tax: dict, age, gross_salary, master_dpl):
         print("True")
     else:
         eligible = False
-        print("False else")
+
 
     if eligible:
         years = [2026, 2027, 2028, 2029, 2030, 2031]
