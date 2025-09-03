@@ -53,8 +53,9 @@ def calc_tax(gross_salary: float) -> float:
     net_income = gross_salary - tax
 
     # Return with cents precision
+    print(round(tax, 2))
     return round(tax, 2)
-
+calc_tax(74400)
 ##########################################################################
 # CALCULATOR for ARBEIDSKORTING                                          #
 # RETURNS tax discount (arbeitskorting)                                  #
@@ -339,12 +340,17 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
     df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
     df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting), 0)
     df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting), 0)
-
+    df["Gross Salary"] = gross_salary
     # Calculate net tax
     df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
 
     # Calculate net disposable income after tax and expenses
-    df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+    # df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+
+    df["Netto Disposable"] = df["Gross Salary"] + df["Net Tax"] - df["Fixed Costs"]
+
+
+
     df.loc[df["Netto Disposable"] < 0, "Netto Disposable"] = 0
 
     # -----------------------------------------------------------
@@ -375,7 +381,11 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
         "27% 2028",
         "27% 2029",
         "27% 2030",
-        "Normal taxes 2031+"
+        "37% 2031+",
+        # "Normal taxes 2032+",
+        # "Normal taxes 2033+",
+        # "Normal taxes 2034+",
+        # "Normal taxes 2035+"
     ]
 
     # Añadir la nueva columna al DataFrame
@@ -397,7 +407,7 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
     fig = go.Figure()
 
     # Define a clean color palette
-    COLOR_PALETTE = ["#02315A", "#1C6EB6", "#61AFF3"]
+    COLOR_PALETTE = ["#1C6EB6", "#61AFF3", "#02315A"]
 
     # Add the bars for each category
     fig.add_trace(go.Bar(
@@ -407,24 +417,10 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
         marker_color=COLOR_PALETTE[0],
         hovertemplate='Net Disposable Income: €%{y:,.0f}<extra></extra>'
     ))
-    fig.add_trace(go.Bar(
-        x=plot_df['Custom Label'],
-        y=plot_df['Fixed Costs'],
-        name='Fixed Costs',
-        marker_color=COLOR_PALETTE[1],
-        hovertemplate='Fixed Costs: €%{y:,.0f}<extra></extra>'
-    ))
-    fig.add_trace(go.Bar(
-        x=plot_df['Custom Label'],
-        y=plot_df['Net Tax'],
-        name='Net Tax',
-        marker_color=COLOR_PALETTE[2],
-        hovertemplate='Net Tax: €%{y:,.0f}<extra></extra>'
-    ))
 
     # Add annotations for the total value on top of each bar stack
     annotations = []
-    for year, total in zip(plot_df['Custom Label'], plot_df['Total']):
+    for year, total in zip(plot_df['Custom Label'], plot_df['Netto Disposable']):
         annotations.append(
             dict(
                 x=year,
@@ -441,7 +437,7 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
     # Update the layout for a stacked bar style and add annotations
     fig.update_layout(
         barmode='stack',
-        title="Monthly Net Income Composition by Year",
+        title="Money in your pocket",
         xaxis_title="Ruling & Year",
         yaxis=dict(
             showticklabels=False,  # Elimina los números
@@ -449,8 +445,37 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
             showline=False,
         ),
         annotations=annotations,
-        hovermode="x unified"
+        hovermode=False
     )
 
     # Display the chart in Streamlit
     st.plotly_chart(fig, use_container_width=True)
+
+
+
+
+def netincome(my_dict: dict, fixed_costs, gross_salary):
+
+    # Convert the dictionary to a Pandas DataFrame
+    df = pd.DataFrame(list(my_dict.items()), columns=["Year", "Taxable Income"])
+
+    # Add fixed costs to the DataFrame
+    df["Fixed Costs"] = fixed_costs
+
+    # Calculate taxes and deductions
+    df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
+    df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting), 0)
+    df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting), 0)
+    df["Gross Salary"] = gross_salary
+    # Calculate net tax
+    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
+
+    # Calculate net disposable income after tax and expenses
+    # df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+
+
+    df["Netto Disposable"] = df["Gross Salary"] + df["Net Tax"]
+
+    print(df)
+
+    return df["Netto Disposable"].iloc[0]
