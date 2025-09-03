@@ -7,6 +7,7 @@ from typing import List, Dict, Any
 from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule import expat_ruling_calc
 from whats_left_llm.ui_charts import render_pie_chart_percent_only, render_bar_chart_giuliano
+from whats_left_llm.chart import chart_netincome
 
 
 # -------------------- DB HELPERS --------------------
@@ -112,7 +113,7 @@ if submitted:
             age=extra["age"],
             gross_salary=out['salary']['avg'] * 12,
             master_dpl=extra["master_diploma"],
-            duration=10
+            duration=6
         )
 
         # First year values
@@ -150,47 +151,49 @@ if submitted:
 
             st.markdown("#### Whats left")
             col1, col2 = st.columns(2)
-            col1.metric("Gross salary", f"€{out['salary']['avg']:,.0f}")
-            col1.metric("Net salary", f"€{net_first_year:,.0f}")
-            col2.metric("Costs", f"€{out['essential_costs']:,.0f}")
+            col2.metric("Net salary", f"€{net_first_year:,.0f}")
             col2.metric("Money in your pocket", f"€{disposable_first_year:,.0f}")
+            col1.metric("Gross salary", f"€{out['salary']['avg']:,.0f}")
+            col1.metric("Costs", f"€{out['essential_costs']:,.0f}")
+            with st.container():
+                with st.expander("What are your costs?"):
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        subcol1, subcol2 = st.columns(2)
+                        with subcol1:
+                            subcol1.metric("Rent", f"€{out['rent']['avg']:,.0f}")
+                            subcol1.metric("Car", f"€{car_value:,.0f}")
+                            subcol1.metric("Health Insurance", f"€{out['health_insurance_value']:,.0f}")
+                        with subcol2:
+                            subcol2.metric("Gas", f"€{out['utilities_breakdown']['Gas']:,.0f}")
+                            subcol2.metric("Electricity", f"€{out['utilities_breakdown']['Electricity']:,.0f}")
+                            subcol2.metric("Water", f"€{out['utilities_breakdown']['Water']:,.0f}")
+                    with col2:
+                        # ------------------ Thabisso ---------------------------
+                        labels = ["Rent", "Car", "Health Insurance", "Gas", "Electricity", "Water"]
+                        utilities = out['utilities_breakdown']
+                        values = [
+                            out['rent']['avg'],
+                            out['car_total_per_month'],
+                            utilities.get("Gas", 0),
+                            utilities.get("Electricity", 0),
+                            utilities.get("Water", 0),
+                            out['health_insurance_value']
+                        ]
+                        render_pie_chart_percent_only(labels, values)
+
+
 
         with st.container():
-            with st.expander("Watch your costs"):
-                col1, col2 = st.columns(2)
-                with col1:
-                    subcol1, subcol2 = st.columns(2)
-                    with subcol1:
-                        subcol1.metric("Rent", f"€{out['rent']['avg']:,.0f}")
-                        subcol1.metric("Car", f"€{car_value:,.0f}")
-                        subcol1.metric("Health Insurance", f"€{out['health_insurance_value']:,.0f}")
-                    with subcol2:
-                        subcol2.metric("Gas", f"€{out['utilities_breakdown']['Gas']:,.0f}")
-                        subcol2.metric("Electricity", f"€{out['utilities_breakdown']['Electricity']:,.0f}")
-                        subcol2.metric("Water", f"€{out['utilities_breakdown']['Water']:,.0f}")
+            chart_netincome(res_tax, out['essential_costs']*12, age, out['salary']['avg']*12, degre_value)
 
-                with col2:
-                                        # ------------------ Thabisso ---------------------------
-                    labels = ["Housing Costs", "Transportation", "Gas", "Electricity", "Water", "Health Insurance"]
-                    utilities = out['utilities_breakdown']
-                    values = [
-                        out['rent']['avg'],
-                        out['car_total_per_month'],
-                        utilities.get("Gas", 0),
-                        utilities.get("Electricity", 0),
-                        utilities.get("Water", 0),
-                        out['health_insurance_value']
-                    ]
-                    render_pie_chart_percent_only(labels, values, "Essential Living Costs Breakdown")
-                    render_bar_chart_giuliano(res_tax, age, out['salary']['avg']*12, degre_value)
+        #                         # ---- Details con tabs: Inputs / Extra / Outputs ----
+        st.markdown("### Details")
 
-                                # ---- Details con tabs: Inputs / Extra / Outputs ----
-        # st.markdown("### Details")
-
-        #     # (opcional) también mostrar el JSON crudo
-        # with st.expander("Raw payload (JSON)"):
-        #     import json
-        #     st.code(json.dumps(payload, indent=2), language="json")
+            # (opcional) también mostrar el JSON crudo
+        with st.expander("Raw payload (JSON)"):
+            import json
+            st.code(json.dumps(payload, indent=2), language="json")
 
 
 
@@ -201,13 +204,6 @@ if submitted:
 else:
     st.info("Fill in the fields and press **What's left**.")
 
-            # ---- Details con tabs: Inputs / Extra / Outputs ----
-        # st.markdown("### Details")
-
-        #     # (opcional) también mostrar el JSON crudo
-        # with st.expander("Raw payload (JSON)"):
-        #     import json
-        #     st.code(json.dumps(payload, indent=2), language="json")
 
 # PALETTE = {
 #     "navy":   "#03045E",
