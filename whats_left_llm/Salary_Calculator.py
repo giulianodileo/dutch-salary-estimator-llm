@@ -58,7 +58,7 @@ if not any(opts.values()):
 
 # -------------------- PAGE 1: SALARY CALCULATOR --------------------
 
-st.markdown("### Money in your pocket")
+st.markdown("### Disposable income Calculator")
 
 # Load options from the database
 opts = load_options(DB_URI)
