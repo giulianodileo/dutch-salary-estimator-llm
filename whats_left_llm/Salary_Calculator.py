@@ -6,11 +6,11 @@ import sqlite3
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 # from whats_left_llm.calculator_core import DB_URI
-from whats_left_llm.calculate_30_rule_copy import expat_ruling_calc
-from whats_left_llm.ui_charts import render_pie_chart_percent_only
-from whats_left_llm.chart import chart_netincome, netincome
-from whats_left_llm.chart import net_tax
-from whats_left_llm.chart import netto_disposable
+# from whats_left_llm.calculate_30_rule_copy import expat_ruling_calc
+# from whats_left_llm.ui_charts import render_pie_chart_percent_only
+# from whats_left_llm.chart import chart_netincome, netincome
+# from whats_left_llm.chart import net_tax
+# from whats_left_llm.chart import netto_disposable
 import sqlite3
 from pathlib import Path
 import pandas as pd
