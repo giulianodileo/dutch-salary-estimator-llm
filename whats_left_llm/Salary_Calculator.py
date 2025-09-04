@@ -213,7 +213,7 @@ if submitted:
             col1.metric("Gross salary", f"€{out['salary']['avg']:,.0f}")
             col1.metric("Costs", f"€{out['essential_costs']:,.0f}")
             with st.container():
-                with st.expander("Discover your costs?"):
+                with st.expander("Discover your costs"):
                     col1, col2 = st.columns(2)
                     with col1:
                         subcol1, subcol2 = st.columns(2)
@@ -243,9 +243,10 @@ if submitted:
         with st.container():
             chart_netincome(res_tax, out['essential_costs']*12, age, out['salary']['avg']*12, degre_value)
 
-        with st.expander("Raw payload (JSON)"):
-            import json
-            st.code(json.dumps(payload, indent=2), language="json")
+        # Option to visualize JSON
+        # with st.expander("Raw payload (JSON)"):
+        #     import json
+        #     st.code(json.dumps(payload, indent=2), language="json")
 
 
 
