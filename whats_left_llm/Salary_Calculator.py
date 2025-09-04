@@ -4,19 +4,23 @@ from __future__ import annotations
 import streamlit as st
 import sqlite3
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 # from whats_left_llm.calculator_core import DB_URI
-from whats_left_llm.calculate_30_rule_copy import expat_ruling_calc
-from whats_left_llm.ui_charts import render_pie_chart_percent_only
-from whats_left_llm.chart import chart_netincome, netincome
-from whats_left_llm.chart import net_tax
-from whats_left_llm.chart import netto_disposable
+# from whats_left_llm.calculate_30_rule_copy import expat_ruling_calc
+# from whats_left_llm.ui_charts import render_pie_chart_percent_only
+# from whats_left_llm.chart import chart_netincome, netincome
+# from whats_left_llm.chart import net_tax
+# from whats_left_llm.chart import netto_disposable
+from typing import Optional, Dict, Any
+from datetime import datetime
 import sqlite3
 from pathlib import Path
-import pandas as pd
-from datetime import datetime
+import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
+from typing import List
+import plotly.express as px
 
 DB_URI = "sqlite:///db/app.db"
 
@@ -28,9 +32,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# -------------------- FUNCTIONS CALCULATOR CORE --------------------
+# -------------------- ESTIMATE FUNCTION --------------------
 
-# Estimations
 def get_estimates(
     job: str,
     seniority: str,
@@ -105,39 +108,6 @@ def get_estimates(
                 raise ValueError(f"No car cost found for type '{car_type}'.")
             car_month = float(row[0] or 0)
 
-    essential_costs = get_essential_costs(con, city, accommodation_type, car_type)
-    utilities_breakdown = get_utilities_breakdown(con)
-    health_insurance_value = get_health_insurance_value(con)
-
-    return {
-        "inputs": {
-            "job": job,
-            "seniority": seniority,
-            "city": city,
-            "accommodation_type": accommodation_type,
-            "car_type": car_type,
-        },
-        "outputs": {
-            "salary": {"min": sal_min, "avg": sal_avg, "max": sal_max},
-            "rent":   {"min": rent_min, "avg": rent_avg, "max": rent_max},
-            "car_total_per_month": car_month,
-            "essential_costs": essential_costs,
-            "health_insurance_value": health_insurance_value,
-            "utilities_breakdown": utilities_breakdown,
-        },
-    }
-
-# Open SQL data
-
-def _open(db_uri: str) -> sqlite3.Connection:
-    assert db_uri.startswith("sqlite:///")
-    path = db_uri.replace("sqlite:///", "", 1)
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(path)
-    con.execute("PRAGMA foreign_keys = ON;")
-    return con
-
-# Getting costs
 
 def get_essential_costs(con: sqlite3.Connection, city: str, accommodation_type: str, car_type: Optional[str]) -> float:
     total = 0.0
@@ -175,8 +145,6 @@ def get_essential_costs(con: sqlite3.Connection, city: str, accommodation_type: 
 
     return total
 
-# Get utilities cost
-
 def get_utilities_breakdown(con: sqlite3.Connection) -> Dict[str, float]:
     """
     Devuelve un dict con los valores de utilities separados por categoría:
@@ -192,7 +160,6 @@ def get_utilities_breakdown(con: sqlite3.Connection) -> Dict[str, float]:
     return breakdown
 
 
-# Get health insutance amount
 def get_health_insurance_value(con: sqlite3.Connection):
     """
     Devuelve el valor de health insurance (si solo hay un registro en la tabla).
@@ -206,10 +173,10 @@ def get_health_insurance_value(con: sqlite3.Connection):
     return row[0]
 
 
-# -------------------- FUNCTIONS CALCULATOR CORE --------------------
 
-# Apply tax ruling
+# -------------------- 30 RULING
 
+# Not main:
 def apply_ruling(base_salary: float, months_dur: int, year: int, year_seq: int):
   # base_salary -> annual
   # function derives gross salary net of 30% taxes
@@ -239,7 +206,9 @@ def apply_ruling(base_salary: float, months_dur: int, year: int, year_seq: int):
 
     return gross_taxable
 
-# 30% ruling for expacts
+# MAIN FUNCTION
+# #
+#####################################################################
 
 def expat_ruling_calc(age: int,
                       base_salary: float,
@@ -336,64 +305,7 @@ def expat_ruling_calc(age: int,
 
     return my_dict
 
-# -------------------- CHARTS --------------------
-
-# Pie chart function
-
-def render_pie_chart_percent_only(labels: List[str], values: List[float]):
-    """
-    Render a donut pie chart showing percentage breakdown of essential living costs.
-
-    Parameters:
-    - labels: list of category names (e.g., ["Housing Costs", "Transportation", ...])
-    - values: list of numeric values corresponding to labels
-    - title: chart title string
-    """
-
-    # Define the new color palette from your request
-    COLOR_PALETTE = [
-        "#48CAE4",
-        "#00B4D8",
-        "#0096C7",
-        "#0077B6",
-        "#023E8A",
-        "#03045E",
-    ]
-
-    fig = px.pie(
-        names=labels,
-        values=values,
-        hole=0.4,
-        color_discrete_sequence=COLOR_PALETTE
-    )
-
-    # Update traces to show percentages and set text color
-    fig.update_traces(
-        textinfo="percent",
-        textfont_color="black",
-        insidetextorientation='radial',
-        hovertemplate="<b>%{label}</b><br>€%{value:,.0f}<br>%{percent}<extra></extra>"
-    )
-    fig.update_traces(textinfo="percent", textfont_color="white")
-
-    fig.update_layout(template="plotly_white")
-
-    # Update layout to use a clean template
-    fig.update_layout(
-        template="plotly_white",
-        showlegend=True,
-        height=280,
-    )
-    # --- CAMBIO CLAVE: USAR COLUMNAS PARA REDUCIR EL TAMAÑO ---
-    # Crea tres columnas para centrar el gráfico.
-    # La del medio tendrá el gráfico y las otras dos serán espacios en blanco.
-    # col1, col2, col3 = st.columns([0.1, 2, 0.1])
-
-    # with col2:
-    #     st.plotly_chart(fig, use_container_width=True) # Se mantiene en True para que llene su columna
-    st.plotly_chart(fig, use_container_width=True)
-
-#
+# ------------------------------------ CHARTS
 
 def calc_tax(gross_salary: float) -> float:
 
@@ -576,7 +488,17 @@ def return_net_income(my_dict: dict, fixed_costs):
     return df["Netto Disposable"].iloc[0]
 
 
-# Netto charts
+
+
+
+#-------------------------------------------@@@@@@@@@@@@@@@@@@@@@@@-------------------
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+import numpy as np
+
+# NOTE: The following functions (calc_tax, bereken_arbeidskorting, etc.)
+# are not defined here. Please ensure they are imported.
 
 def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
     """
@@ -801,8 +723,115 @@ def net_tax(my_dict: dict, fixed_costs, gross_salary):
 
     return df.set_index("Year")["Net Tax"].to_dict()
 
-# ---------------------------------------- UI Frontend --------------------
+def render_pie_chart_percent_only(labels: List[str], values: List[float]):
+    """
+    Render a donut pie chart showing percentage breakdown of essential living costs.
 
+    Parameters:
+    - labels: list of category names (e.g., ["Housing Costs", "Transportation", ...])
+    - values: list of numeric values corresponding to labels
+    - title: chart title string
+    """
+
+    # Define the new color palette from your request
+    COLOR_PALETTE = [
+        "#48CAE4",
+        "#00B4D8",
+        "#0096C7",
+        "#0077B6",
+        "#023E8A",
+        "#03045E",
+    ]
+
+    fig = px.pie(
+        names=labels,
+        values=values,
+        hole=0.4,
+        color_discrete_sequence=COLOR_PALETTE
+    )
+
+    # Update traces to show percentages and set text color
+    fig.update_traces(
+        textinfo="percent",
+        textfont_color="black",
+        insidetextorientation='radial',
+        hovertemplate="<b>%{label}</b><br>€%{value:,.0f}<br>%{percent}<extra></extra>"
+    )
+    fig.update_traces(textinfo="percent", textfont_color="white")
+
+    fig.update_layout(template="plotly_white")
+
+    # Update layout to use a clean template
+    fig.update_layout(
+        template="plotly_white",
+        showlegend=True,
+        height=280,
+    )
+    # --- CAMBIO CLAVE: USAR COLUMNAS PARA REDUCIR EL TAMAÑO ---
+    # Crea tres columnas para centrar el gráfico.
+    # La del medio tendrá el gráfico y las otras dos serán espacios en blanco.
+    # col1, col2, col3 = st.columns([0.1, 2, 0.1])
+
+    # with col2:
+    #     st.plotly_chart(fig, use_container_width=True) # Se mantiene en True para que llene su columna
+    st.plotly_chart(fig, use_container_width=True)
+
+def render_bar_chart_giuliano(res_tax: dict, age, gross_salary, master_dpl):
+    # ---- BAR CHART: Net salary evolution (2026–2031) ----
+
+    eligible = False
+    if age >= 30 and gross_salary >= 66657:
+        eligible = True
+    elif age < 30 and master_dpl and gross_salary >= 50668:
+        eligible = True
+        print("True")
+    else:
+        eligible = False
+
+
+    if eligible:
+        years = [2026, 2027, 2028, 2029, 2030, 2031]
+        net_salaries = []
+
+        for y in years:
+            if y in res_tax:
+                net_salaries.append(res_tax[y] / 12)  # monthly net salary
+            elif y >= 2031:
+                normal_net = res_tax[max(res_tax.keys())] / 12
+                net_salaries.append(normal_net)
+
+        labels = [
+            "30% ruling (2026)",
+            "27% ruling (2027)",
+            "27% ruling (2028)",
+            "27% ruling (2029)",
+            "27% ruling (2030)",
+            "Normal taxes (2031+)"
+        ]
+
+        COLOR_PALETTE = ["#02315A", "#1C6EB6", "#61AFF3"]
+
+        fig = px.bar(
+            x=labels,
+            y=net_salaries,
+            text=[f"€{val:,.0f}" for val in net_salaries],
+            labels={"x": "Year & Ruling", "y": "Net Salary (per month)"},
+            color=labels,
+            color_discrete_sequence=COLOR_PALETTE
+        )
+
+        fig.update_traces(textposition="outside")
+        fig.update_layout(
+            title="Impact of 30% Ruling on Net Salary (2026–2031)",
+            showlegend=False,
+            yaxis=dict(
+                tickformat="€,.0f",
+                range=[3500, max(net_salaries) * 1.1] # X starts from 3500
+                )
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        print("You are not selected")
 
 # ----- Page Config (Optional - customize per page) -----
 st.set_page_config(page_title="Your Page Title", layout="wide")
@@ -1245,7 +1274,6 @@ def apply_calculator_styling():
     #MainMenu { visibility: hidden !important; }
     </style>
     """, unsafe_allow_html=True)
-
 
 
 # -------------------- DB HELPERS --------------------
