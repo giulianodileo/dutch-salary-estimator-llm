@@ -189,10 +189,13 @@ def generate(state: State):
             f"- Age: {user_info['extra']['age']}\n"
             f"- Gross Salary (monthly): €{user_info['outputs']['salary']['avg']:,.0f}\n"
             f"- Gross Salary (annually): €{user_info['outputs']['salary']['avg'] * 12:,.0f}\n"
-            f"- Net Salary (calculated): €{user_info['net tax']:,.0f}\n"
+            f"- Net Salary (calculated): €{user_info['net']:,.0f}\n"
             f"- Essential Costs: €{user_info['outputs']['essential_costs']:,.0f}\n"
-            f"- Disposable Income (calculated): €{user_info['net tax'] - user_info['outputs']['essential_costs']:,.0f}\n"
+            f"- Disposable Income (calculated): €{user_info['pocket']:,.0f}\n"
+            f"- Netto Disposable: €{user_info['netto_disposable']}\n"
+            f"- Net Tax: €{user_info['net_tax']}\n"
         )
+
 
     # Build final prompt
     messages = rag_prompt.invoke({

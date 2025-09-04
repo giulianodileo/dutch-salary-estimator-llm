@@ -6,10 +6,17 @@ from pathlib import Path
 from typing import List, Dict, Any
 from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule_copy import expat_ruling_calc
-# from whats_left_llm.calculate_30_rule import expat_ruling_calc
-from whats_left_llm.ui_charts import render_pie_chart_percent_only, render_bar_chart_giuliano
+from whats_left_llm.ui_charts import render_pie_chart_percent_only
 from whats_left_llm.chart import chart_netincome, netincome
+from whats_left_llm.chart import net_tax
+from whats_left_llm.chart import netto_disposable
 
+# -------------------- PAGE CONFIG --------------------
+st.set_page_config(
+    page_title="Dutch Salary-to-Reality Calculator",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # -------------------- DB HELPERS --------------------
 def _sqlite_path(db_uri: str) -> str:
@@ -114,18 +121,10 @@ if submitted:
             age=extra["age"],
             base_salary=out['salary']['avg'] * 12,
             date_string="2026-01-01",
-            duration=10,
-            expertise=True,
+            duration=6,
             master_dpl=extra["master_diploma"],
 
         )
-        # res_tax = expat_ruling_calc(
-        #     age=extra["age"],
-        #     gross_salary=out['salary']['avg'] * 12,
-        #     master_dpl=extra["master_diploma"],
-        #     duration=10,
-
-        # )
 
         # First year values
         first_year = min(res_tax.keys())
@@ -137,8 +136,26 @@ if submitted:
             "extra": extra,
             "outputs": out,
             "tax dict": res_tax,
-            "net tax": net_first_year
         }
+
+        netnet = (netincome(payload["tax dict"], out['essential_costs']*12, out['salary']['avg']*12)/12)
+        pocket = netnet - out['essential_costs']
+
+
+        net_taxx =  net_tax(payload["tax dict"], out['essential_costs']*12, out['salary']['avg']*12)
+        netto_disposablee = netto_disposable(payload["tax dict"], out['essential_costs']*12, out['salary']['avg']*12)
+
+        payload = {
+            "inputs": res["inputs"],
+            "extra": extra,
+            "outputs": out,
+            "tax dict": res_tax,
+            "net": netnet,
+            "pocket": pocket,
+            "netto_disposable": netto_disposablee,
+            "net_tax": net_taxx
+        }
+
         st.session_state["last_payload"] = payload
         car_value = payload["outputs"]["car_total_per_month"]
 
@@ -161,8 +178,10 @@ if submitted:
             )
             netnet = (netincome(payload["tax dict"], out['essential_costs']*12, out['salary']['avg']*12)/12)
             pocket = netnet - out['essential_costs']
+
             st.markdown("#### Your overview")
             col1, col2 = st.columns(2)
+# --------------------------------------------------------------------------------
             col2.metric("Net salary", f"€{netnet:,.0f}")
             col2.metric("Disposable income", f"€{pocket:,.0f}")
             col1.metric("Gross salary", f"€{out['salary']['avg']:,.0f}")
@@ -198,7 +217,10 @@ if submitted:
 
         with st.container():
             chart_netincome(res_tax, out['essential_costs']*12, age, out['salary']['avg']*12, degre_value)
-
+                # (opcional) también mostrar el JSON crudo
+        with st.expander("Raw payload (JSON)"):
+            import json
+            st.code(json.dumps(payload, indent=2), language="json")
 
 
 

@@ -43,13 +43,22 @@ def apply_ruling(base_salary: float, months_dur: int, year: int, year_seq: int):
 # #
 #####################################################################
 
-def expat_ruling_calc(age: int, base_salary: float, date_string: str, duration: int = 10,
-                      expertise: bool = False, master_dpl: bool = False):
+def expat_ruling_calc(age: int,
+                      base_salary: float,
+                      date_string: str,
+                      duration: int = 10,
+                      master_dpl: bool = False):
 
   # INITIATE KEY PARAMETERS
   salary_cap = 233000
   salary_req_young = 35468
   salary_expert = 46660
+
+  eligible = False
+  if age >= 30 and base_salary >= 66657:
+      eligible = True
+  elif age < 30 and master_dpl and base_salary >= 50668:
+      eligible = True
 
   # DETERMINE MONTHS REMAINING IN FIRST YEAR & LAST YEAR
   # date_string = "2024-12-25"
@@ -75,9 +84,9 @@ def expat_ruling_calc(age: int, base_salary: float, date_string: str, duration: 
 
   # CHECK IF 30% RULING WILL APPLY
 
-  if age < 30 and expertise == True and master_dpl == True and base_salary >= salary_req_young:
+  if age < 30 and eligible == True and master_dpl == True and base_salary >= salary_req_young:
         Ruling_test = True
-  elif age >= 30 and expertise == True and base_salary >= salary_expert:
+  elif age >= 30 and eligible == True and base_salary >= salary_expert:
         Ruling_test = True
   else:
         Ruling_test = False
@@ -139,7 +148,6 @@ if __name__ == "__main__":
             base_salary=74520,
             date_string="2026-01-01",
             duration=10,
-            expertise=True,
             master_dpl=False,
 
         )
