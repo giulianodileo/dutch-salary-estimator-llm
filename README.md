@@ -49,8 +49,7 @@ Python
 PY/Beautiful soup
 PY/Langchain
 PY/Streamlit
-DB
-
+SQL Lite database
 
 ## 3. Getting Started
 This is the make-or-break section. Developers will abandon your project if setup is painful.
