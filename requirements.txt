@@ -1,6 +1,33 @@
+# Core app framework
+streamlit
+
+# Data handling
+pandas
+numpy
+
+# Database
+sqlite-utils   # (sqlite3 is stdlib, but this gives sqlite:/// URI support)
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# LangChain + AI stack
 langchain
+langchain-core
+langchain-community
 langchain-google-genai
-pydantic
+langchain-text-splitters
+langgraph
+
+# Environment variables
 python-dotenv
+
+# Typing extensions
+typing_extensions
+
+# Other
+pydantic
 playwright
 unstructured
