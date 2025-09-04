@@ -42,17 +42,17 @@ Built front-end interface using Streamlit with interactive controls, charts and 
 ✅ Negotiating a better deal
 
 
+
 ## 2. Built With
 
 Python
 PY/Beautiful soup
 PY/Langchain
 PY/Streamlit
-DB
+SQL Lite database
 
 ## 3. Getting Started
 This is the make-or-break section. Developers will abandon your project if setup is painful.
-
 
 ## 4. Usage Examples
 Show, don't just tell. Provide concrete, copy-paste examples:
@@ -103,4 +103,4 @@ https://www.belastingdienst.nl/wps/wcm/connect/en/individuals/content/coming-to-
 
 ## Acknowledgments
 
-Special thanks to:
+Special thanks to: Juan, Jen and other teaches from Le Wagon who helped us during the bootcamp
