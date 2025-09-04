@@ -55,6 +55,10 @@ if not any(opts.values()):
     st.error("Database not found or empty. Load it before using the app.")
     st.stop()
 
+# Clean labels within the user input page
+def clean_label(text: str) -> str:
+    return text.replace("_", " ").replace("-", " ").title() if text else text
+
 
 # -------------------- PAGE 1: SALARY CALCULATOR --------------------
 
@@ -66,6 +70,14 @@ if not any(opts.values()):
     st.error("I cannot find the database, or the tables are empty. Please ensure that you have created it and uploaded the JSONs.")
     st.stop()
 
+# Build cleaned versions
+jobs_display = [clean_label(j) for j in opts["jobs"]]
+seniorities_display = [clean_label(s) for s in opts["seniorities"]]
+cities_display = [clean_label(c) for c in opts["cities"]]
+accommodations_display = [clean_label(a) for a in opts["accommodations"]]
+cars_display = [clean_label(c) for c in opts["cars"]]
+
+
 with st.container(border=True):
     col1, col2 = st.columns(2)
     with col1:
@@ -74,23 +86,35 @@ with st.container(border=True):
         st.success(f"Welcome, {user_name}! 😎")
     with col2:
         age = st.number_input("Age", min_value=18, max_value=70, step=1)
+
     with col1:
-        job = st.selectbox("Job", opts["jobs"])
+        job_display = st.selectbox("Job", jobs_display)
+        job = opts["jobs"][jobs_display.index(job_display)]
+
     with col2:
-        seniority = st.selectbox("Seniority", opts["seniorities"])
+        seniority_display = st.selectbox("Seniority", seniorities_display)
+        seniority = opts["seniorities"][seniorities_display.index(seniority_display)]
+
     with col1:
-        city = st.selectbox("City", opts["cities"])
+        city_display = st.selectbox("City", cities_display)
+        city = opts["cities"][cities_display.index(city_display)]
+
     with col2:
-        accommodation_type = st.selectbox("Accommodation", opts["accommodations"])
+        accommodation_display = st.selectbox("Accommodation", accommodations_display)
+        accommodation_type = opts["accommodations"][accommodations_display.index(accommodation_display)]
+
     with col1:
         has_masters_nl = st.selectbox("Master's degree (or higher education)", ["Yes", "No"])
+
     with col2:
-        car_type = st.selectbox("Car type", ["No"] + opts["cars"])
-        if car_type == "No":
+        car_display = st.selectbox("Car type", ["No"] + cars_display)
+        if car_display == "No":
             car_cost = 0
         else:
-            car_cost = car_type
+            car_cost = opts["cars"][cars_display.index(car_display)]
+
     submitted = st.button("What's Left")
+
 
 def check_degree_requirement(age: int, has_degree: str) -> bool:
     if age < 30 and has_degree == "Yes":
@@ -181,7 +205,9 @@ if submitted:
 
             st.markdown("#### Your overview")
             col1, col2 = st.columns(2)
+
 # --------------------------------------------------------------------------------
+
             col2.metric("Net salary", f"€{netnet:,.0f}")
             col2.metric("Disposable income", f"€{pocket:,.0f}")
             col1.metric("Gross salary", f"€{out['salary']['avg']:,.0f}")
@@ -200,7 +226,6 @@ if submitted:
                             subcol2.metric("Electricity", f"€{out['utilities_breakdown']['Electricity']:,.0f}")
                             subcol2.metric("Water", f"€{out['utilities_breakdown']['Water']:,.0f}")
                     with col2:
-                        # ------------------ Thabisso ---------------------------
                         labels = ["Rent", "Car", "Health Insurance", "Gas", "Electricity", "Water"]
                         utilities = out['utilities_breakdown']
                         values = [
@@ -217,7 +242,7 @@ if submitted:
 
         with st.container():
             chart_netincome(res_tax, out['essential_costs']*12, age, out['salary']['avg']*12, degre_value)
-                # (opcional) también mostrar el JSON crudo
+
         with st.expander("Raw payload (JSON)"):
             import json
             st.code(json.dumps(payload, indent=2), language="json")
