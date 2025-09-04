@@ -76,14 +76,14 @@ with st.container(border=True):
     with col2:
         accommodation_type = st.selectbox("Accommodation", opts["accommodations"])
     with col1:
-        has_masters_nl = st.selectbox("Master's degree", ["Yes", "No"])
+        has_masters_nl = st.selectbox("Master's degree (or higher education)", ["Yes", "No"])
     with col2:
         car_type = st.selectbox("Car type", ["No"] + opts["cars"])
         if car_type == "No":
             car_cost = 0
         else:
             car_cost = car_type
-    submitted = st.button("What's left")
+    submitted = st.button("What's Left")
 
 def check_degree_requirement(age: int, has_degree: str) -> bool:
     if age < 30 and has_degree == "Yes":
@@ -161,14 +161,14 @@ if submitted:
             )
             netnet = (netincome(payload["tax dict"], out['essential_costs']*12, out['salary']['avg']*12)/12)
             pocket = netnet - out['essential_costs']
-            st.markdown("#### Whats left")
+            st.markdown("#### Your overview")
             col1, col2 = st.columns(2)
             col2.metric("Net salary", f"€{netnet:,.0f}")
-            col2.metric("Money in your pocket", f"€{pocket:,.0f}")
+            col2.metric("Disposable income", f"€{pocket:,.0f}")
             col1.metric("Gross salary", f"€{out['salary']['avg']:,.0f}")
             col1.metric("Costs", f"€{out['essential_costs']:,.0f}")
             with st.container():
-                with st.expander("What are your costs?"):
+                with st.expander("Discover your costs?"):
                     col1, col2 = st.columns(2)
                     with col1:
                         subcol1, subcol2 = st.columns(2)
@@ -207,7 +207,7 @@ if submitted:
     except Exception as e:
         st.error(f"Unexpected error: {e}")
 else:
-    st.info("Fill in the fields and press **What's left**.")
+    st.info("Fill in the fields and press **What's Left**.")
 
 
 # PALETTE = {

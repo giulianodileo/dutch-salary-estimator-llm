@@ -228,8 +228,8 @@ def rag_answer(question: str):
 
 # -------------------- PAGE 2: LLM CHAT --------------------
 with st.container():
-    st.title("Ask Alex 🧞")
-    st.info("Please note: always consult the Netherlands Tax Administration (Belastingdienst) for all updates regarding taxation.")
+    st.title("Ask Harvey 👨‍⚖️")
+    st.info("Please note: always consult the Netherlands Tax and Customs Administration (Belastingdienst) for all updates regarding taxation.")
 
     faq = [
         "Explain the 30% ruling in simple words.",
@@ -239,7 +239,7 @@ with st.container():
     st.write(":bulb: Suggested questions:")
     for q in faq:
         if st.button(q):
-            with st.spinner("Thinking..."):
+            with st.spinner("Connecting the dots..."):
                 result = rag_answer(q)
             st.success(result["answer"])
             # Optional: print("Retrieved sources:", result.get("sources"))
@@ -256,6 +256,6 @@ with st.container():
 
     user_input = st.text_input("Or type your own question:")
     if user_input:
-        with st.spinner("Thinking..."):
+        with st.spinner("Connecting the dots..."):
             result = rag_answer(user_input)
         st.success(result["answer"])
