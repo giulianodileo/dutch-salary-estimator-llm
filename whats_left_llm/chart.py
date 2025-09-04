@@ -263,7 +263,7 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
     # --- CAMBIO CLAVE: MANTENER SOLO 6 AÑOS Y AÑADIR LAS ETIQUETAS ---
     plot_df = plot_df.head(6)
 
-    # Definir las etiquetas personalizadas
+    # Define custom labels
     custom_labels = [
         "30% 2026",
         "27% 2027",
@@ -327,11 +327,11 @@ def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
     # Update the layout for a stacked bar style and add annotations
     fig.update_layout(
         barmode='stack',
-        title="Money in your pocket",
-        xaxis_title="Ruling & Year",
+        title="Evolution of your disposable income",
+        xaxis_title="Taxation per Year",
         yaxis=dict(
-            showticklabels=False,  # Elimina los números
-            showgrid=False,        # Elimina las líneas de cuadrícula horizontales
+            showticklabels=False,
+            showgrid=False,
             showline=False,
         ),
         annotations=annotations,
