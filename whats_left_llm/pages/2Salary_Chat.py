@@ -1,3 +1,5 @@
+# -------------------- LIBRARIES --------------------
+
 import streamlit as st
 from pathlib import Path
 import asyncio
@@ -28,9 +30,8 @@ except ImportError:
     st.sidebar.error(":warning: Could not import init_chat_model. Install LangChain + Google GenAI.")
     HAS_LLM = False
 
-
-
 # -------------------- LLM LOADER --------------------
+
 @st.cache_resource(show_spinner=True)
 def load_llm():
     if not HAS_LLM:
@@ -160,7 +161,7 @@ def prepare_context(query, vector_store, llm, filters=None):
         sources.append(SOURCE_LABELS.get(filename, filename))
     return compressed, sources
 
-
+# Labels are not actively used, but rather kept for tracking and debugging
 SOURCE_LABELS = {
     "health_insurance.md": "Rijksoverheid",
     "rental_prices.md": "HousingAnywhere, RentHunter",
@@ -204,7 +205,7 @@ def generate(state: State):
 
     return {
         "answer": response.content.strip(),
-        "sources": sorted(set(sources_used)) # Keeping this for debugging, now showing to the user
+        "sources": sorted(set(sources_used)) # Not showing to the user
     }
 
 # Step 5: Create question-answer flowchart
@@ -243,16 +244,6 @@ with st.container():
                 result = rag_answer(q)
             st.success(result["answer"])
             # Optional: print("Retrieved sources:", result.get("sources"))
-
-    # user_input = st.text_area("Or type your own question:", "")
-    # if st.button("Ask") and user_input:
-    #     with st.spinner("Thinking..."):
-    #         result = rag_answer(user_input)
-    #     st.success(result["answer"])
-    #     # Optional: print("Retrieved sources:", result.get("sources"))
-
-    # The above commented code enables submitting questions by clicking the "Ask" button
-    # The following code enables submitting the question by pressing Enter
 
     user_input = st.text_input("Or type your own question:")
     if user_input:
