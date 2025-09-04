@@ -10,6 +10,8 @@ from whats_left_llm.ui_charts import render_pie_chart_percent_only
 from whats_left_llm.chart import chart_netincome, netincome
 from whats_left_llm.chart import net_tax
 from whats_left_llm.chart import netto_disposable
+from typing import Optional, Dict, Any
+
 
 # -------------------- PAGE CONFIG --------------------
 st.set_page_config(
