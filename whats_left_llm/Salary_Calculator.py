@@ -4,7 +4,7 @@ import streamlit as st
 import sqlite3
 from pathlib import Path
 from typing import List, Dict, Any
-#from whats_left_llm.calculator_core import get_estimates, DB_URI
+from whats_left_llm.calculator_core import get_estimates, DB_URI
 from whats_left_llm.calculate_30_rule_copy import expat_ruling_calc
 from whats_left_llm.ui_charts import render_pie_chart_percent_only
 from whats_left_llm.chart import chart_netincome, netincome
