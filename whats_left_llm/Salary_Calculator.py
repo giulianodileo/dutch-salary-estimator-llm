@@ -1,16 +1,22 @@
 # Dutch Salary-to-Reality Calculator (Enhanced & Accessible)
+from __future__ import annotations
 
 import streamlit as st
 import sqlite3
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 # from whats_left_llm.calculator_core import DB_URI
 from whats_left_llm.calculate_30_rule_copy import expat_ruling_calc
 from whats_left_llm.ui_charts import render_pie_chart_percent_only
 from whats_left_llm.chart import chart_netincome, netincome
 from whats_left_llm.chart import net_tax
 from whats_left_llm.chart import netto_disposable
-from typing import Optional, Dict, Any
+import sqlite3
+from pathlib import Path
+import pandas as pd
+from datetime import datetime
+import plotly.express as px
+import plotly.graph_objects as go
 
 DB_URI = "sqlite:///db/app.db"
 
@@ -22,8 +28,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# -------------------- ESTIMATE FUNCTION --------------------
+# -------------------- FUNCTIONS CALCULATOR CORE --------------------
 
+# Estimations
 def get_estimates(
     job: str,
     seniority: str,
@@ -119,6 +126,1126 @@ def get_estimates(
             "utilities_breakdown": utilities_breakdown,
         },
     }
+
+# Open SQL data
+
+def _open(db_uri: str) -> sqlite3.Connection:
+    assert db_uri.startswith("sqlite:///")
+    path = db_uri.replace("sqlite:///", "", 1)
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(path)
+    con.execute("PRAGMA foreign_keys = ON;")
+    return con
+
+# Getting costs
+
+def get_essential_costs(con: sqlite3.Connection, city: str, accommodation_type: str, car_type: Optional[str]) -> float:
+    total = 0.0
+
+    # --- 1) Rent ---
+    rent = con.execute("""
+        SELECT AVG(average_amount)
+        FROM rental_prices
+        WHERE city = ? AND accommodation_type = ?;
+    """, (city, accommodation_type)).fetchone()[0]
+    total += rent or 0
+
+    # --- 2) Utilities (sumar todas las categorías) ---
+    utilities = con.execute("""
+        SELECT SUM(amount)
+        FROM utilities;
+    """).fetchone()[0]
+    total += utilities or 0
+
+    # --- 3) Car costs (si aplica) ---
+    if car_type:
+        car = con.execute("""
+            SELECT AVG(total_per_month)
+            FROM transportation_car_costs
+            WHERE type = ?;
+        """, (car_type,)).fetchone()[0]
+        total += car or 0
+
+    # --- 4) Health insurance ---
+    hi = con.execute("""
+        SELECT AVG(amount)
+        FROM health_insurance;
+    """).fetchone()[0]
+    total += hi or 0
+
+    return total
+
+# Get utilities cost
+
+def get_utilities_breakdown(con: sqlite3.Connection) -> Dict[str, float]:
+    """
+    Devuelve un dict con los valores de utilities separados por categoría:
+    { "Water": 25.9, "Gas": 50.0, "Electricity": 80.0 }
+    """
+    rows = con.execute("""
+        SELECT utility_type, SUM(amount)
+        FROM utilities
+        GROUP BY utility_type;
+    """).fetchall()
+
+    breakdown = {row[0]: row[1] for row in rows}
+    return breakdown
+
+
+# Get health insutance amount
+def get_health_insurance_value(con: sqlite3.Connection):
+    """
+    Devuelve el valor de health insurance (si solo hay un registro en la tabla).
+    """
+    row = con.execute("""
+        SELECT amount
+        FROM health_insurance
+        LIMIT 1;
+    """).fetchone()
+
+    return row[0]
+
+
+# -------------------- FUNCTIONS CALCULATOR CORE --------------------
+
+# Apply tax ruling
+
+def apply_ruling(base_salary: float, months_dur: int, year: int, year_seq: int):
+  # base_salary -> annual
+  # function derives gross salary net of 30% taxes
+  # months_dur -> months when 30% ruling will be applied
+  # year_seq: which year we deal with: 0 -> first, 1 -> intermeidate year, 2-> last, 3-> no 30% ruling
+
+    if year in (2025, 2026) and year_seq == 0:
+      # 30% ruling on months applied
+      gross_taxable = (base_salary - ((base_salary * 0.3) / 12 * months_dur))
+      print(gross_taxable)
+    elif year in (2025, 2026) and year_seq == 1:
+      # in case 2025, 2025 not first year -> full year 30% ruling
+      gross_taxable = base_salary - (base_salary * 0.3)
+      print(gross_taxable)
+    elif year not in (2025, 2026) and year_seq == 1:
+      # in case 2026 or later and 27% ruling whole year
+      gross_taxable = base_salary - (base_salary * 0.27)
+      print(gross_taxable)
+    elif year not in (2025, 2026) and year_seq == 2:
+      # in case 2026 or later and 30% ruling part of the year
+      gross_taxable = ((base_salary - (base_salary * 0.3)) / 12 * months_dur) + (base_salary / 12 * (12 - months_dur))
+      print(gross_taxable)
+    else:
+      # no 30% ruling and year later than 2026
+      print(gross_taxable)
+      gross_taxable = base_salary
+
+    return gross_taxable
+
+# 30% ruling for expacts
+
+def expat_ruling_calc(age: int,
+                      base_salary: float,
+                      date_string: str,
+                      duration: int = 10,
+                      master_dpl: bool = False):
+
+  # INITIATE KEY PARAMETERS
+  salary_cap = 233000
+  salary_req_young = 35468
+  salary_expert = 46660
+
+  eligible = False
+  if age >= 30 and base_salary >= 66657:
+      eligible = True
+  elif age < 30 and master_dpl and base_salary >= 50668:
+      eligible = True
+
+  # DETERMINE MONTHS REMAINING IN FIRST YEAR & LAST YEAR
+  # date_string = "2024-12-25"
+
+  start_date = datetime.strptime(date_string, "%Y-%m-%d")
+
+  # DETERMINE CURRENT YEAR
+  current_year = start_date.year
+
+  months_remaining_init = 12 - start_date.month + 1
+  months_remaining_final = 12 - months_remaining_init
+
+  # YEARS SEQUENCE
+  # CREATE A SEQUENCE OF YEARS EXPECTED TO BE EMPLOYED IN NL
+  # CREATE DICTIONARY TO KEEP VALUES IN
+
+  years_sequence = list(range(current_year, current_year + duration))
+  my_dict = {}
+  my_key = years_sequence
+
+  for key in my_key:
+    my_dict[key] = ""
+
+  # CHECK IF 30% RULING WILL APPLY
+
+  if age < 30 and eligible == True and master_dpl == True and base_salary >= salary_req_young:
+        Ruling_test = True
+  elif age >= 30 and eligible == True and base_salary >= salary_expert:
+        Ruling_test = True
+  else:
+        Ruling_test = False
+
+  # CALCULATION BASE
+
+  if base_salary > salary_cap:
+    base_salary = salary_cap
+  else:
+    base_salary = base_salary
+
+  keys_list = list(my_dict.keys())  # Get the tuple
+  keys = list(keys_list)  # Convert tuple to list: ['A', 'B', 'C']
+
+  # CHECKING IF THERE IS A BROKEN YEAR AND CALCULATING THESE PARTS #
+  ##################################################################
+
+  if Ruling_test == True:
+    # months_remaining_init != 12 and Ruling_test == True:
+    # if start date not January
+
+    year1 = apply_ruling(base_salary, months_remaining_init, int(keys_list[0]), 0)
+    year5 = apply_ruling(base_salary, months_remaining_final, int(keys_list[4]), 2)
+    my_dict[keys[0]] = year1
+    my_dict[keys[4]] = year5
+
+    # other years -not first and last years
+    other_years_sequence = list(keys_list[1:5])
+
+    for key in other_years_sequence:
+      if key >= 2027:
+        # new 27% ruling
+        my_dict[key] = apply_ruling(base_salary, 12, int(key), 1)
+      else:
+        # apply 30% ruling
+        my_dict[key] = apply_ruling(base_salary, 12, int(key), 1)
+
+    # populating remainder of the dictionary - no ruling
+    for key in keys_list[5:]:
+      my_dict[key] = float(base_salary)
+
+    return my_dict
+
+  else:
+    # not applicable - not fulfilling conditions
+    # populating remainder of the dictionary - no ruling
+    for key in keys_list:
+      my_dict[key] = float(base_salary)
+
+    return my_dict
+
+# -------------------- CHARTS --------------------
+
+# Pie chart function
+
+def render_pie_chart_percent_only(labels: List[str], values: List[float]):
+    """
+    Render a donut pie chart showing percentage breakdown of essential living costs.
+
+    Parameters:
+    - labels: list of category names (e.g., ["Housing Costs", "Transportation", ...])
+    - values: list of numeric values corresponding to labels
+    - title: chart title string
+    """
+
+    # Define the new color palette from your request
+    COLOR_PALETTE = [
+        "#48CAE4",
+        "#00B4D8",
+        "#0096C7",
+        "#0077B6",
+        "#023E8A",
+        "#03045E",
+    ]
+
+    fig = px.pie(
+        names=labels,
+        values=values,
+        hole=0.4,
+        color_discrete_sequence=COLOR_PALETTE
+    )
+
+    # Update traces to show percentages and set text color
+    fig.update_traces(
+        textinfo="percent",
+        textfont_color="black",
+        insidetextorientation='radial',
+        hovertemplate="<b>%{label}</b><br>€%{value:,.0f}<br>%{percent}<extra></extra>"
+    )
+    fig.update_traces(textinfo="percent", textfont_color="white")
+
+    fig.update_layout(template="plotly_white")
+
+    # Update layout to use a clean template
+    fig.update_layout(
+        template="plotly_white",
+        showlegend=True,
+        height=280,
+    )
+    # --- CAMBIO CLAVE: USAR COLUMNAS PARA REDUCIR EL TAMAÑO ---
+    # Crea tres columnas para centrar el gráfico.
+    # La del medio tendrá el gráfico y las otras dos serán espacios en blanco.
+    # col1, col2, col3 = st.columns([0.1, 2, 0.1])
+
+    # with col2:
+    #     st.plotly_chart(fig, use_container_width=True) # Se mantiene en True para que llene su columna
+    st.plotly_chart(fig, use_container_width=True)
+
+#
+
+def calc_tax(gross_salary: float) -> float:
+
+    # --- 1) Guardrail: input should be non-negative
+    if gross_salary < 0:
+        raise ValueError("gross_salary must be non-negative")
+
+    # --- 2) Define the 2025 Box 1 brackets as (upper_limit, rate)
+    # Bracket 1: 0        .. 38,441  -> 35.82%
+    # Bracket 2: 38,441   .. 76,817  -> 37.48%
+    # Bracket 3: 76,817   .. +inf    -> 49.50%
+    # We implement these as cumulative upper bounds. The last one is infinity.
+    brackets: List[Tuple[float, float]] = [
+        (38_441.00, 0.3582),
+        (76_817.00, 0.3748),
+        (float("inf"), 0.4950),
+    ]
+
+    # assume taxable income is gross salary
+    taxable_income = gross_salary
+
+    # Walk the brackets and accumulate tax per slice
+    tax = 0.0
+    lower_limit = 0.0
+
+    for upper_limit, rate in brackets:
+        # Income that falls inside THIS bracket:
+        #   from the current lower_limit up to the bracket's upper_limit,
+        #   but never exceeding taxable_income.
+        slice_amount = max(0.0, min(taxable_income, upper_limit) - lower_limit)
+        if slice_amount <= 0:
+            # No taxable income left for this or further brackets.
+            break
+        # Tax for this slice = slice_amount * rate
+        tax += slice_amount * rate
+        # Move the lower bound up to this bracket's upper limit
+        lower_limit = upper_limit
+        # If we've already taxed the entire taxable_income, stop early
+        if taxable_income <= upper_limit:
+            break
+
+    # Net income = full gross - tax
+    net_income = gross_salary - tax
+
+    # Return with cents precision
+    print(round(tax, 2))
+    return round(tax, 2)
+calc_tax(74400)
+##########################################################################
+# CALCULATOR for ARBEIDSKORTING                                          #
+# RETURNS tax discount (arbeitskorting)                                  #
+##########################################################################
+
+def bereken_arbeidskorting(salaris):
+    """
+    Berekent de arbeidskorting voor Nederland 2025 op basis van het brutosalaris.
+    De arbeidskorting heeft 4 fases:
+    - Fase 1 (€0 - €11.491): 0% korting
+    - Fase 2 (€11.491 - €24.821): Opbouw van 31,15%
+    - Fase 3 (€24.821 - €39.958): Plateau van €4.152
+    - Fase 4 (€39.958 - €124.934): Afbouw van 6%
+    - Boven €124.934: Geen arbeidskorting
+    Args:
+        salaris (float): Het bruto jaarsalaris in euro's
+    Returns:
+        float: De arbeidskorting in euro's
+    """
+
+    # Grenzen en tarieven arbeidskorting 2025
+    GRENS_1 = 11491    # Ondergrens voor arbeidskorting
+    GRENS_2 = 24821    # Einde opbouwfase
+    GRENS_3 = 39958    # Einde plateau
+    GRENS_4 = 124934   # Bovengrens arbeidskorting
+
+    OPBOUW_TARIEF = 0.3115    # 31,15% opbouw in fase 2
+    MAX_KORTING = 4152        # Maximum arbeidskorting (plateau)
+    AFBOUW_TARIEF = 0.06      # 6% afbouw in fase 4
+
+    # Input validatie
+    if salaris < 0:
+        raise ValueError("Salaris kan niet negatief zijn")
+
+    # Fase 1: €0 - €11.491 (geen korting)
+    if salaris <= GRENS_1:
+        return 0.0
+
+    # Fase 2: €11.491 - €24.821 (opbouw 31,15%)
+    elif salaris <= GRENS_2:
+        opbouw_bedrag = salaris - GRENS_1
+        korting = opbouw_bedrag * OPBOUW_TARIEF
+        return round(korting, 2)
+
+    # Fase 3: €24.821 - €39.958 (plateau €4.152)
+    elif salaris <= GRENS_3:
+        return MAX_KORTING
+
+    # Fase 4: €39.958 - €124.934 (afbouw 6%)
+    elif salaris <= GRENS_4:
+        afbouw_bedrag = salaris - GRENS_3
+        afbouw = afbouw_bedrag * AFBOUW_TARIEF
+        korting = MAX_KORTING - afbouw
+        return round(max(korting, 0), 2)  # Minimum 0
+
+    # Boven €124.934: geen arbeidskorting meer
+    else:
+        return 0.0
+
+
+##########################################################################
+# CALCULATOR for ALGEMENE HEFFINGSKORTING                                #
+# RETURNS tax discount (algemene heffingskorting                         #
+##########################################################################
+
+def bereken_algemene_heffingskorting(salaris):
+    """
+    Berekent de algemene heffingskorting voor Nederland 2025 op basis van het brutosalaris.
+    De algemene heffingskorting heeft 3 fases:
+    - Fase 1 (€0 - €24.812): Volledige korting van €3.362
+    - Fase 2 (€24.812 - €76.421): Afbouw van 6,007% per euro boven €24.812
+    - Fase 3 (boven €76.421): Geen algemene heffingskorting meer
+
+    Args:
+        salaris (float): Het bruto jaarsalaris in euro's
+    Returns:
+        float: De algemene heffingskorting in euro's
+    """
+
+    # Grenzen en tarieven algemene heffingskorting 2025
+    MAXIMUM_KORTING = 3362      # Maximum algemene heffingskorting
+    AFBOUW_ONDERGRENS = 24812   # Vanaf dit bedrag begint afbouw
+    AFBOUW_BOVENGRENS = 76421   # Boven dit bedrag is er geen korting meer
+    AFBOUW_TARIEF = 0.06007     # 6,007% afbouw per euro boven de ondergrens
+
+    # Input validatie
+    if salaris < 0:
+        raise ValueError("Salaris kan niet negatief zijn")
+
+    # Fase 1: €0 - €24.812 (volledige korting)
+    if salaris <= AFBOUW_ONDERGRENS:
+        return MAXIMUM_KORTING
+
+    # Fase 2: €24.812 - €76.421 (afbouw 6,007%)
+    elif salaris <= AFBOUW_BOVENGRENS:
+        afbouw_bedrag = salaris - AFBOUW_ONDERGRENS
+        afbouw = afbouw_bedrag * AFBOUW_TARIEF
+        korting = MAXIMUM_KORTING - afbouw
+        return round(max(korting, 0), 2)  # Minimum 0
+
+    # Fase 3: Boven €76.421 (geen korting meer)
+    else:
+        return 0.0
+
+
+def return_net_income(my_dict: dict, fixed_costs):
+
+###############################################################################
+############################ RETURN NET INCOME YEAR 1##########################
+###############################################################################
+
+# CONVERTING TO PANDA DATAFRAME AND ADDING OTHER PARAMETERS
+    df = pd.DataFrame(list(my_dict.items()), columns=["Year", "Taxable Income"])
+
+# ADDING FIXED COSTS FROM DICTIONARY
+    df["Fixed Costs"] = fixed_costs
+
+# CALCULATING TAX
+    df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
+
+# CALCULATING DEDUCTABLES
+    df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting),0)
+    df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting),0)
+
+# CALCULATING NET TAX
+    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
+
+# CALCULATING NETTO INCOME AFTER TAX & FIXED EXPENSES
+    df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+    df.loc[df["Netto Disposable"] < 0, "Netto Disposable"] = 0
+
+    return df["Netto Disposable"].iloc[0]
+
+
+# Netto charts
+
+def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
+    """
+    Generates and displays a stacked bar chart of net income
+    and fixed costs for the first 6 years, based on monthly values, using Plotly.
+
+    Args:
+        my_dict (dict): Dictionary with taxable income by year.
+        fixed_costs (float): The amount of annual fixed costs.
+        age (int): The person's age.
+        gross_salary (float): The gross salary.
+        master_dpl (bool): True if they have a Master's degree, False otherwise.
+    """
+
+    # -----------------------------------------------------------
+    # DATA PREPARATION (UNCHANGED)
+    # -----------------------------------------------------------
+
+    # Convert the dictionary to a Pandas DataFrame
+    df = pd.DataFrame(list(my_dict.items()), columns=["Year", "Taxable Income"])
+
+    # Add fixed costs to the DataFrame
+    df["Fixed Costs"] = fixed_costs
+
+    # Calculate taxes and deductions
+    df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
+    df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting), 0)
+    df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting), 0)
+    df["Gross Salary"] = gross_salary
+    # Calculate net tax
+    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
+
+    # Calculate net disposable income after tax and expenses
+    # df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+
+    df["Netto Disposable"] = df["Gross Salary"] + df["Net Tax"] - df["Fixed Costs"]
+
+
+
+    df.loc[df["Netto Disposable"] < 0, "Netto Disposable"] = 0
+
+    # -----------------------------------------------------------
+    # CHART PREPARATION AND VISUALIZATION WITH PLOTLY
+    # -----------------------------------------------------------
+
+    # Check eligibility to display the chart
+    eligible = False
+    if age >= 30 and gross_salary >= 66657:
+        eligible = True
+    elif age < 30 and master_dpl and gross_salary >= 50668:
+        eligible = True
+
+    if not eligible:
+        print("You are not eligible to view the chart based on the criteria.")
+        return # Exit the function if not eligible
+
+    # If eligible, prepare the data and create the chart
+    plot_df = df[['Year', 'Netto Disposable', 'Fixed Costs', 'Net Tax']].copy()
+
+    # --- CAMBIO CLAVE: MANTENER SOLO 6 AÑOS Y AÑADIR LAS ETIQUETAS ---
+    plot_df = plot_df.head(6)
+
+    # Define custom labels
+    custom_labels = [
+        "30% 2026",
+        "27% 2027",
+        "27% 2028",
+        "27% 2029",
+        "27% 2030",
+        "37% 2031+",
+        # "Normal taxes 2032+",
+        # "Normal taxes 2033+",
+        # "Normal taxes 2034+",
+        # "Normal taxes 2035+"
+    ]
+
+    # Añadir la nueva columna al DataFrame
+    plot_df['Custom Label'] = custom_labels
+    # -----------------------------------------------------------------
+
+    plot_df['Net Tax'] = plot_df['Net Tax'].abs()
+
+    # Convert to monthly values and ensure a numeric type
+    numeric_cols = ['Netto Disposable', 'Fixed Costs', 'Net Tax']
+    for col in numeric_cols:
+        plot_df[col] = pd.to_numeric(plot_df[col], errors='coerce') / 12
+    plot_df = plot_df.fillna(0)
+
+    # Calculate the total monthly income for annotations
+    plot_df['Total'] = plot_df['Netto Disposable'] + plot_df['Fixed Costs'] + plot_df['Net Tax']
+
+    # Create the stacked bar chart with Plotly
+    fig = go.Figure()
+
+    # Define a clean color palette
+    COLOR_PALETTE = ["#1C6EB6", "#61AFF3","#61AFF3", "#61AFF3", "#61AFF3", "#ADE8F4"]
+
+
+    # Add the bars for each category
+    fig.add_trace(go.Bar(
+        x=plot_df['Custom Label'],
+        y=plot_df['Netto Disposable'],
+        name='Net Disposable Income',
+        marker_color=COLOR_PALETTE,
+        hovertemplate='Net Disposable Income: €%{y:,.0f}<extra></extra>'
+    ))
+
+    # Add annotations for the total value on top of each bar stack
+    annotations = []
+    for year, total in zip(plot_df['Custom Label'], plot_df['Netto Disposable']):
+        annotations.append(
+            dict(
+                x=year,
+                y=total,
+                text=f'€{total:,.0f}',
+                xanchor='center',
+                yanchor='bottom',
+                showarrow=False,
+                font=dict(size=12, color='white'),
+                yshift=10
+            )
+        )
+
+    # Update the layout for a stacked bar style and add annotations
+    fig.update_layout(
+        barmode='stack',
+        title="Evolution of your disposable income",
+        xaxis_title="Taxation per Year",
+        yaxis=dict(
+            showticklabels=False,
+            showgrid=False,
+            showline=False,
+        ),
+        annotations=annotations,
+        hovermode=False
+    )
+
+    # Display the chart in Streamlit
+    st.plotly_chart(fig, use_container_width=True)
+
+
+
+
+def netincome(my_dict: dict, fixed_costs, gross_salary):
+
+    # Convert the dictionary to a Pandas DataFrame
+    df = pd.DataFrame(list(my_dict.items()), columns=["Year", "Taxable Income"])
+
+    # Add fixed costs to the DataFrame
+    df["Fixed Costs"] = fixed_costs
+
+    # Calculate taxes and deductions
+    df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
+    df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting), 0)
+    df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting), 0)
+    df["Gross Salary"] = gross_salary
+    # Calculate net tax
+    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
+
+    # Calculate net disposable income after tax and expenses
+    # df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+
+
+    df["Netto Disposable"] = df["Gross Salary"] + df["Net Tax"]
+
+    print(df)
+
+    return df["Netto Disposable"].iloc[0]
+
+
+def netto_disposable(my_dict: dict, fixed_costs, gross_salary):
+
+    # Convert the dictionary to a Pandas DataFrame
+    df = pd.DataFrame(list(my_dict.items()), columns=["Year", "Taxable Income"])
+
+    # Add fixed costs to the DataFrame
+    df["Fixed Costs"] = fixed_costs
+
+    # Calculate taxes and deductions
+    df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
+    df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting), 0)
+    df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting), 0)
+    df["Gross Salary"] = gross_salary
+    # Calculate net tax
+    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
+
+    # Calculate net disposable income after tax and expenses
+    # df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+
+
+    df["Netto Disposable"] = df["Gross Salary"] + df["Net Tax"]
+
+
+    df["Netto Disposable"] = df["Netto Disposable"]/12
+    print(df)
+    return df.set_index("Year")["Netto Disposable"].to_dict()
+
+def net_tax(my_dict: dict, fixed_costs, gross_salary):
+
+    # Convert the dictionary to a Pandas DataFrame
+    df = pd.DataFrame(list(my_dict.items()), columns=["Year", "Taxable Income"])
+
+    # Add fixed costs to the DataFrame
+    df["Fixed Costs"] = fixed_costs
+
+    # Calculate taxes and deductions
+    df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
+    df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting), 0)
+    df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting), 0)
+    df["Gross Salary"] = gross_salary
+    # Calculate net tax
+    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
+
+    # Calculate net disposable income after tax and expenses
+    # df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
+
+
+    df["Netto Disposable"] = (df["Gross Salary"] + df["Net Tax"])
+    df["Net Tax"] = df["Net Tax"]/12
+
+    print(df)
+
+    return df.set_index("Year")["Net Tax"].to_dict()
+
+# ---------------------------------------- UI Frontend --------------------
+
+
+# ----- Page Config (Optional - customize per page) -----
+st.set_page_config(page_title="Your Page Title", layout="wide")
+
+# ----- MAIN STYLING SECTION (Copy this to all pages) -----
+st.markdown("""
+<style>
+/* Remove the white bar / header background */
+header[data-testid="stHeader"] {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%);
+    border-bottom: none;
+}
+
+/* Also color the toolbar (Deploy / menu) area */
+header[data-testid="stHeader"] .st-emotion-cache-1dp5vir {
+    background: transparent;
+}
+
+/* Main app background with enhanced gradient */
+.stApp {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%);
+    min-height: 100vh;
+}
+
+/* All text colors */
+h1, h2, h3, h4, h5, h6, p, span, div, .stMarkdown {
+    color: white !important;
+}
+
+/* Title styling */
+h1 {
+    font-size: 2.5rem !important;
+    font-weight: 600 !important;
+    text-align: center;
+    margin-bottom: 2rem !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Section headers */
+h3 {
+    font-size: 1.5rem !important;
+    font-weight: 500 !important;
+    margin-bottom: 1.5rem !important;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Hide Streamlit elements */
+.stDeployButton {
+    display: none;
+}
+
+footer {
+    display: none;
+}
+
+#MainMenu {
+    visibility: hidden;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ===== OPTIONAL ADDITIONAL COMPONENTS =====
+# Include these only on pages where you need them
+
+# ----- Glassmorphism Container Styling (for cards/containers) -----
+glassmorphism_css = """
+<style>
+/* Column containers */
+.column-container {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Item styling for lists/rows */
+.item-row {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.item-row:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Image container */
+.item-image {
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    padding: 8px;
+}
+
+/* Item text */
+.item-text {
+    font-weight: 500 !important;
+    font-size: 1.1rem !important;
+    color: white !important;
+}
+</style>
+"""
+
+# ----- Divider Styling (for column separators) -----
+divider_css = """
+<style>
+/* Enhanced divider styling */
+.divider {
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
+    min-height: 400px;
+    margin: auto;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+</style>
+"""
+
+# ===== USAGE EXAMPLES =====
+
+# To use glassmorphism containers:
+# st.markdown(glassmorphism_css, unsafe_allow_html=True)
+# st.markdown("<div class='column-container'>Your content here</div>", unsafe_allow_html=True)
+
+# To use dividers:
+# st.markdown(divider_css, unsafe_allow_html=True)
+# st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+
+# ===== SIMPLIFIED VERSION FOR BASIC PAGES =====
+# If you just need the background and text colors, use only this:
+
+# ---------- BASIC PAGE STYLING ---------- #
+
+def apply_full_styling():
+    """Apply complete blue theme styling including sidebar"""
+    st.markdown("""
+    <style>
+    /* Remove the white bar / header background */
+    header[data-testid="stHeader"] {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%);
+        border-bottom: none;
+    }
+
+    /* Also color the toolbar (Deploy / menu) area */
+    header[data-testid="stHeader"] .st-emotion-cache-1dp5vir {
+        background: transparent;
+    }
+
+    /* Main app background with enhanced gradient */
+    .stApp {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%);
+        min-height: 100vh;
+    }
+
+    /* All text colors */
+    h1, h2, h3, h4, h5, h6, p, span, div, .stMarkdown {
+        color: white !important;
+    }
+
+    /* Title styling */
+    h1 {
+        font-size: 2.5rem !important;
+        font-weight: 600 !important;
+        text-align: center;
+        margin-bottom: 2rem !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* Section headers */
+    h3 {
+        font-size: 1.5rem !important;
+        font-weight: 500 !important;
+        margin-bottom: 1.5rem !important;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    /* SIDEBAR STYLING */
+    /* Sidebar background */
+    .css-1d391kg {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%);
+    }
+
+    /* Sidebar content area */
+    .stSidebar > div:first-child {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%);
+    }
+
+    /* Fix for newer Streamlit versions */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%) !important;
+    }
+
+    section[data-testid="stSidebar"] > div {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%) !important;
+    }
+
+    /* Sidebar text colors */
+    .stSidebar .stMarkdown,
+    .stSidebar .stSelectbox label,
+    .stSidebar .stTextInput label,
+    .stSidebar .stNumberInput label,
+    .stSidebar .stTextArea label,
+    .stSidebar .stDateInput label,
+    .stSidebar .stTimeInput label,
+    .stSidebar .stFileUploader label,
+    .stSidebar .stColorPicker label,
+    .stSidebar .stSlider label,
+    .stSidebar .stRadio label,
+    .stSidebar .stCheckbox label,
+    .stSidebar .stMultiSelect label,
+    .stSidebar h1, .stSidebar h2, .stSidebar h3,
+    .stSidebar h4, .stSidebar h5, .stSidebar h6,
+    .stSidebar p, .stSidebar span, .stSidebar div {
+        color: white !important;
+    }
+
+    /* Sidebar input fields */
+    .stSidebar .stSelectbox select,
+    .stSidebar .stTextInput input,
+    .stSidebar .stNumberInput input,
+    .stSidebar .stTextArea textarea {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 5px;
+    }
+
+    /* Sidebar buttons */
+    .stSidebar .stButton button {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px;
+        backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+    }
+
+    .stSidebar .stButton button:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        transform: translateY(-1px);
+    }
+
+    /* Hide Streamlit elements */
+    .stDeployButton {
+        display: none;
+    }
+
+    footer {
+        display: none;
+    }
+
+    #MainMenu {
+        visibility: hidden;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ---------- LLM CHAT STYLING ---------- #
+
+def apply_chat_styling():
+    """Apply blue theme styling for Salary Chat page (with left-aligned big title)"""
+    st.markdown("""
+    <style>
+    /* Background + header */
+    header[data-testid="stHeader"] {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%) !important;
+        border-bottom: none !important;
+    }
+    header[data-testid="stHeader"] .st-emotion-cache-1dp5vir {
+        background: transparent !important;
+    }
+    .stApp {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%) !important;
+        min-height: 100vh !important;
+    }
+
+    /* Text */
+    h1, h2, h3, h4, h5, h6, p, span, div, .stMarkdown {
+        color: white !important;
+    }
+
+    /* Title */
+    h1 {
+        font-size: 3rem !important;     /* bigger than default */
+        font-weight: 700 !important;    /* bolder */
+        text-align: left !important;    /* lock to left */
+        margin-bottom: 2rem !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+    }
+
+    /* Info boxes */
+    .stAlert {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+    }
+
+    /* Buttons (Ask + Suggested Questions unified style) */
+    .stButton button {
+        background: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: 500 !important;
+        backdrop-filter: blur(8px) !important;
+        transition: all 0.3s ease !important;
+        font-size: 1rem !important;
+    }
+    .stButton button:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    }
+
+    /* Typing bar (textarea) */
+    div[data-testid="stTextArea"] textarea {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 8px !important;
+        padding: 0.6rem !important;
+        backdrop-filter: blur(8px) !important;
+        font-size: 1rem !important;
+    }
+    div[data-testid="stTextArea"] textarea::placeholder {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    /* Text input (if used) */
+    div[data-testid="stTextInput"] input {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 8px !important;
+        padding: 0.5rem !important;
+        backdrop-filter: blur(8px) !important;
+        font-size: 1rem !important;
+    }
+    div[data-testid="stTextInput"] input::placeholder {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    /* Hide Streamlit branding */
+    .stDeployButton { display: none !important; }
+    footer { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ---------- CALCULATOR STYLING --------- #
+
+def apply_calculator_styling():
+    """Apply blue theme styling for Salary Calculator page (with transparent charts)"""
+    st.markdown("""
+    <style>
+    /* Background + header */
+    header[data-testid="stHeader"] {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%) !important;
+        border-bottom: none !important;
+    }
+    header[data-testid="stHeader"] .st-emotion-cache-1dp5vir {
+        background: transparent !important;
+    }
+    .stApp {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #004e92 100%) !important;
+        min-height: 100vh !important;
+    }
+
+    /* Text */
+    h1, h2, h3, h4, h5, h6, p, span, div, .stMarkdown {
+        color: white !important;
+    }
+
+    /* Title */
+    h1 {
+        font-size: 3rem !important;
+        font-weight: 700 !important;
+        text-align: left !important;
+        margin-bottom: 2rem !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+    }
+
+    /* Info boxes */
+    .stAlert {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+    }
+
+    /* Buttons */
+    .stButton button {
+        background: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: 500 !important;
+        backdrop-filter: blur(8px) !important;
+        transition: all 0.3s ease !important;
+        font-size: 1rem !important;
+    }
+    .stButton button:hover {
+        background: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    }
+
+    /* Plotly chart containers (force transparent) */
+    div[data-testid="stPlotlyChart"] {
+        background: rgba(0,0,0,0) !important;
+    }
+    div[data-testid="stPlotlyChart"] iframe {
+        background: rgba(0,0,0,0) !important;
+    }
+
+    /* Hide Streamlit branding */
+    .stDeployButton { display: none !important; }
+    footer { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
 
 
 # -------------------- DB HELPERS --------------------
