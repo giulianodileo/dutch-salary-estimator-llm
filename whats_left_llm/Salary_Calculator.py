@@ -1,36 +1,32 @@
-# Dutch Salary-to-Reality Calculator (Enhanced & Accessible)
+# ---------- IMPORTS ---------- #
+
 from __future__ import annotations
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+from pathlib import Path
+from datetime import datetime
 
 import streamlit as st
 import sqlite3
-from pathlib import Path
-from typing import List, Dict, Any, Optional
-# from whats_left_llm.calculator_core import DB_URI
-# from whats_left_llm.calculate_30_rule_copy import expat_ruling_calc
-# from whats_left_llm.ui_charts import render_pie_chart_percent_only
-# from whats_left_llm.chart import chart_netincome, netincome
-# from whats_left_llm.chart import net_tax
-# from whats_left_llm.chart import netto_disposable
 import sqlite3
-from pathlib import Path
 import pandas as pd
-from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
-
 DB_URI = "sqlite:///db/app.db"
 
 
-# -------------------- PAGE CONFIG --------------------
+# ---------- PAGE CONFIGURATION ---------- #
+
 st.set_page_config(
     page_title="Dutch Salary-to-Reality Calculator",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# -------------------- FUNCTIONS CALCULATOR CORE --------------------
+# ---------- FUNCTIONS CALCULATOR ---------- #
 
-# Estimations
+# ----- Salaries and Costs Estimations
+
 def get_estimates(
     job: str,
     seniority: str,
@@ -41,14 +37,15 @@ def get_estimates(
     db_uri: str = DB_URI,
 ) -> Dict[str, Any]:
     """
-    Devuelve:
+    Provides figures regarding:
       - salary: {min, avg, max}
       - rent:   {min, avg, max}
       - car:    total_per_month (o 0 si no se pide)
-    Lanza ValueError con mensaje claro si falta algún dato.
+    If any data is missing, the result is ValueError with a clear message
     """
     with _open(db_uri) as con:
-        # 1) Salary
+
+        # 1) Retrieve Gross Salary
         row = con.execute(
             """
             SELECT jpd.min_amount, jpd.average_amount, jpd.max_amount
@@ -69,7 +66,7 @@ def get_estimates(
             raise ValueError(f"No salary found for ({job}, {seniority}) in EUR/month.")
         sal_min, sal_avg, sal_max = map(lambda x: float(x or 0), row)
 
-        # 2) Rent
+        # 2) Rent costs
         row = con.execute(
             """
             SELECT rp.min_amount, rp.average_amount, rp.max_amount
@@ -89,7 +86,7 @@ def get_estimates(
             raise ValueError(f"No rent found for ({city}, {accommodation_type}) in EUR/month.")
         rent_min, rent_avg, rent_max = map(lambda x: float(x or 0), row)
 
-        # 3) Car (optional)
+        # 3) Car costs (optional)
         car_month = 0.0
         if car_type:
             row = con.execute(
@@ -179,7 +176,7 @@ def get_essential_costs(con: sqlite3.Connection, city: str, accommodation_type: 
 
 def get_utilities_breakdown(con: sqlite3.Connection) -> Dict[str, float]:
     """
-    Devuelve un dict con los valores de utilities separados por categoría:
+    Provides a dictionary with utility values separated by category:
     { "Water": 25.9, "Gas": 50.0, "Electricity": 80.0 }
     """
     rows = con.execute("""
@@ -195,7 +192,7 @@ def get_utilities_breakdown(con: sqlite3.Connection) -> Dict[str, float]:
 # Get health insutance amount
 def get_health_insurance_value(con: sqlite3.Connection):
     """
-    Devuelve el valor de health insurance (si solo hay un registro en la tabla).
+    Provides the cost of a basic, mandatory health insurance package.
     """
     row = con.execute("""
         SELECT amount
@@ -206,32 +203,47 @@ def get_health_insurance_value(con: sqlite3.Connection):
     return row[0]
 
 
-# -------------------- FUNCTIONS CALCULATOR CORE --------------------
+# ----- Apply Taxation, Tax Benefits, Net Salary, and Disposable Income
 
-# Apply tax ruling
+# Tax Ruling with Variations per Year
 
 def apply_ruling(base_salary: float, months_dur: int, year: int, year_seq: int):
-  # base_salary -> annual
-  # function derives gross salary net of 30% taxes
-  # months_dur -> months when 30% ruling will be applied
-  # year_seq: which year we deal with: 0 -> first, 1 -> intermeidate year, 2-> last, 3-> no 30% ruling
+    """
+    Applies the tax ruling in accordance with the latest updates:
+    First Year (2026) -> 30% of the gross salary is going to be tax free
+    Second to Fifth Year (2027-2030 -> 27% of the gross salary is going to be
+    tax free
+    Sixth Year and Beyond (2031-) -> Normal taxation applies. No Benefits
+    -----
+    base_salary -> annual gross salary
+    months_dur -> number of months for which the 30% ruling applies
+    year_seq -> which year we deal with:
+        0 -> first,
+        1 -> intermeidate year,
+        2-> last,
+        3-> no 30% ruling
+    """
 
     if year in (2025, 2026) and year_seq == 0:
       # 30% ruling on months applied
       gross_taxable = (base_salary - ((base_salary * 0.3) / 12 * months_dur))
       print(gross_taxable)
+
     elif year in (2025, 2026) and year_seq == 1:
       # in case 2025, 2025 not first year -> full year 30% ruling
       gross_taxable = base_salary - (base_salary * 0.3)
       print(gross_taxable)
+
     elif year not in (2025, 2026) and year_seq == 1:
       # in case 2026 or later and 27% ruling whole year
       gross_taxable = base_salary - (base_salary * 0.27)
       print(gross_taxable)
+
     elif year not in (2025, 2026) and year_seq == 2:
       # in case 2026 or later and 30% ruling part of the year
       gross_taxable = ((base_salary - (base_salary * 0.3)) / 12 * months_dur) + (base_salary / 12 * (12 - months_dur))
       print(gross_taxable)
+
     else:
       # no 30% ruling and year later than 2026
       print(gross_taxable)
@@ -239,102 +251,126 @@ def apply_ruling(base_salary: float, months_dur: int, year: int, year_seq: int):
 
     return gross_taxable
 
-# 30% ruling for expacts
+# Conditions for expacts to be eligible for tax ruling
 
 def expat_ruling_calc(age: int,
                       base_salary: float,
                       date_string: str,
                       duration: int = 10,
                       master_dpl: bool = False):
+    """
+    This will determine if an expat is eligible for the tax ruling or not,
+    based on the following criteria:
+        - If the expact is younger than 30, then has to hold a master's
+        degree and receive a salary of at least 35,468€
+        - If the expact is 30 years old or older, then has to receive a salary
+        of at least 46,660€
+    -----
+    age -> different criterias apply for those being younger than 30 years old
+    base_salary -> There is a minimum required salary for which the tax benefit
+    can be applied
+    date_string -> Starting date from which the tax ruling would apply.
+    By default, this is always 2026-01-01
+    duration -> amount of years for which the tax ruling applies (or not)
+    master_dpl -> special requirement for under 30s: they need to own a
+    master's degree (or higher level).
+    """
 
-  # INITIATE KEY PARAMETERS
-  salary_cap = 233000
-  salary_req_young = 35468
-  salary_expert = 46660
+    # 1) Initiate key paramenters to be eligible for the tax ruling:
+    # - Maximum gross salary: 233,000€
+    salary_cap = 233000
+    # - Minimum required salary for under 30s: 35,468€
+    salary_req_young = 35468
+    # - Minimum required salary for over 30s: 46,660€
+    salary_expert = 46660
+    eligible = False
 
-  eligible = False
-  if age >= 30 and base_salary >= 66657:
-      eligible = True
-  elif age < 30 and master_dpl and base_salary >= 50668:
-      eligible = True
+    if age >= 30 and base_salary >= 66657:
+        eligible = True
 
-  # DETERMINE MONTHS REMAINING IN FIRST YEAR & LAST YEAR
-  # date_string = "2024-12-25"
+    elif age < 30 and master_dpl and base_salary >= 50668:
+        eligible = True
 
-  start_date = datetime.strptime(date_string, "%Y-%m-%d")
+    # 2) DETERMINE MONTHS REMAINING IN FIRST YEAd
+    # date_string = "2024-12-25"
 
-  # DETERMINE CURRENT YEAR
-  current_year = start_date.year
+    start_date = datetime.strptime(date_string, "%Y-%m-%d")
 
-  months_remaining_init = 12 - start_date.month + 1
-  months_remaining_final = 12 - months_remaining_init
+    # DETERMINE CURRENT YEAR
+    current_year = start_date.year
+
+    months_remaining_init = 12 - start_date.month + 1
+    months_remaining_final = 12 - months_remaining_init
 
   # YEARS SEQUENCE
   # CREATE A SEQUENCE OF YEARS EXPECTED TO BE EMPLOYED IN NL
   # CREATE DICTIONARY TO KEEP VALUES IN
 
-  years_sequence = list(range(current_year, current_year + duration))
-  my_dict = {}
-  my_key = years_sequence
+    years_sequence = list(range(current_year, current_year + duration))
+    my_dict = {}
+    my_key = years_sequence
 
-  for key in my_key:
-    my_dict[key] = ""
+    for key in my_key:
+        my_dict[key] = ""
 
   # CHECK IF 30% RULING WILL APPLY
 
-  if age < 30 and eligible == True and master_dpl == True and base_salary >= salary_req_young:
-        Ruling_test = True
-  elif age >= 30 and eligible == True and base_salary >= salary_expert:
-        Ruling_test = True
-  else:
-        Ruling_test = False
+    if age < 30 and eligible == True and master_dpl == True and base_salary >= salary_req_young:
+            Ruling_test = True
+    elif age >= 30 and eligible == True and base_salary >= salary_expert:
+            Ruling_test = True
+    else:
+            Ruling_test = False
 
   # CALCULATION BASE
 
-  if base_salary > salary_cap:
-    base_salary = salary_cap
-  else:
-    base_salary = base_salary
+    if base_salary > salary_cap:
+        base_salary = salary_cap
+    else:
+        base_salary = base_salary
 
-  keys_list = list(my_dict.keys())  # Get the tuple
-  keys = list(keys_list)  # Convert tuple to list: ['A', 'B', 'C']
+    keys_list = list(my_dict.keys())  # Get the tuple
+    keys = list(keys_list)  # Convert tuple to list: ['A', 'B', 'C']
 
   # CHECKING IF THERE IS A BROKEN YEAR AND CALCULATING THESE PARTS #
   ##################################################################
 
-  if Ruling_test == True:
-    # months_remaining_init != 12 and Ruling_test == True:
-    # if start date not January
+    if Ruling_test == True:
+        # months_remaining_init != 12 and Ruling_test == True:
+        # if start date not January
 
-    year1 = apply_ruling(base_salary, months_remaining_init, int(keys_list[0]), 0)
-    year5 = apply_ruling(base_salary, months_remaining_final, int(keys_list[4]), 2)
-    my_dict[keys[0]] = year1
-    my_dict[keys[4]] = year5
+        year1 = apply_ruling(base_salary, months_remaining_init, int(keys_list[0]), 0)
+        year5 = apply_ruling(base_salary, months_remaining_final, int(keys_list[4]), 2)
+        my_dict[keys[0]] = year1
+        my_dict[keys[4]] = year5
 
-    # other years -not first and last years
-    other_years_sequence = list(keys_list[1:5])
+        # other years -not first and last years
+        other_years_sequence = list(keys_list[1:5])
 
-    for key in other_years_sequence:
-      if key >= 2027:
-        # new 27% ruling
-        my_dict[key] = apply_ruling(base_salary, 12, int(key), 1)
-      else:
-        # apply 30% ruling
-        my_dict[key] = apply_ruling(base_salary, 12, int(key), 1)
+        for key in other_years_sequence:
+            if key >= 2027:
+            # new 27% ruling
+                my_dict[key] = apply_ruling(base_salary, 12, int(key), 1)
 
-    # populating remainder of the dictionary - no ruling
-    for key in keys_list[5:]:
-      my_dict[key] = float(base_salary)
+        else:
+            # apply 30% ruling
+            my_dict[key] = apply_ruling(base_salary, 12, int(key), 1)
 
-    return my_dict
+        # populating remainder of the dictionary - no ruling
+        for key in keys_list[5:]:
 
-  else:
-    # not applicable - not fulfilling conditions
-    # populating remainder of the dictionary - no ruling
-    for key in keys_list:
-      my_dict[key] = float(base_salary)
+            my_dict[key] = float(base_salary)
 
-    return my_dict
+        return my_dict
+
+    else:
+        # not applicable - not fulfilling conditions
+        # populating remainder of the dictionary - no ruling
+        for key in keys_list:
+
+            my_dict[key] = float(base_salary)
+
+        return my_dict
 
 # -------------------- CHARTS --------------------
 
