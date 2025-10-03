@@ -278,21 +278,20 @@ def expat_ruling_calc(age: int,
 
     # 1) Initiate key paramenters to be eligible for the tax ruling:
     # - Maximum gross salary: 233,000€
-    salary_cap = 233000
+    salary_cap = 246000
     # - Minimum required salary for under 30s: 35,468€
     salary_req_young = 35468
     # - Minimum required salary for over 30s: 46,660€
     salary_expert = 46660
     eligible = False
 
-    if age >= 30 and base_salary >= 66657:
+    if age >= 30 and base_salary >= salary_req_young:
         eligible = True
 
-    elif age < 30 and master_dpl and base_salary >= 50668:
+    elif age < 30 and master_dpl and base_salary >= salary_expert and base_salary < salary_cap:
         eligible = True
 
-    # 2) DETERMINE MONTHS REMAINING IN FIRST YEAd
-    # date_string = "2024-12-25"
+    # 2) Define the starting date from which the tax rule starts to apply
 
     start_date = datetime.strptime(date_string, "%Y-%m-%d")
 
