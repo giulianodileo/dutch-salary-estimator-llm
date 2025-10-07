@@ -1,13 +1,134 @@
+from typing import List
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import streamlit as st
-import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-##########################################################################
-# TAX CALCULATOR                                                         #
-# RETURNS tax                                                            #
-##########################################################################
+from datetime import datetime
+
+
+def apply_ruling(base_salary: float, months_dur: int, year: int, year_seq: int):
+  # base_salary -> annual
+  # function derives gross salary net of 30% taxes
+  # months_dur -> months when 30% ruling will be applied
+  # year_seq: which year we deal with: 0 -> first, 1 -> intermeidate year, 2-> last, 3-> no 30% ruling
+
+    if year in (2025, 2026) and year_seq == 0:
+      # 30% ruling on months applied
+      gross_taxable = (base_salary - ((base_salary * 0.3) / 12 * months_dur))
+      print(gross_taxable)
+    elif year in (2025, 2026) and year_seq == 1:
+      # in case 2025, 2025 not first year -> full year 30% ruling
+      gross_taxable = base_salary - (base_salary * 0.3)
+      print(gross_taxable)
+    elif year not in (2025, 2026) and year_seq == 1:
+      # in case 2026 or later and 27% ruling whole year
+      gross_taxable = base_salary - (base_salary * 0.27)
+      print(gross_taxable)
+    elif year not in (2025, 2026) and year_seq == 2:
+      # in case 2026 or later and 30% ruling part of the year
+      gross_taxable = ((base_salary - (base_salary * 0.3)) / 12 * months_dur) + (base_salary / 12 * (12 - months_dur))
+      print(gross_taxable)
+    else:
+      # no 30% ruling and year later than 2026
+      print(gross_taxable)
+      gross_taxable = base_salary
+
+    return gross_taxable
+
+# 30% ruling for expacts
+
+def expat_ruling_calc(age: int,
+                      base_salary: float,
+                      date_string: str,
+                      duration: int = 10,
+                      master_dpl: bool = False):
+
+  # INITIATE KEY PARAMETERS
+  salary_cap = 233000
+  salary_req_young = 35468
+  salary_expert = 46660
+
+  eligible = False
+  if age >= 30 and base_salary >= 66657:
+      eligible = True
+  elif age < 30 and master_dpl and base_salary >= 50668:
+      eligible = True
+
+  # DETERMINE MONTHS REMAINING IN FIRST YEAR & LAST YEAR
+  # date_string = "2024-12-25"
+
+  start_date = datetime.strptime(date_string, "%Y-%m-%d")
+
+  # DETERMINE CURRENT YEAR
+  current_year = start_date.year
+
+  months_remaining_init = 12 - start_date.month + 1
+  months_remaining_final = 12 - months_remaining_init
+
+  # YEARS SEQUENCE
+  # CREATE A SEQUENCE OF YEARS EXPECTED TO BE EMPLOYED IN NL
+  # CREATE DICTIONARY TO KEEP VALUES IN
+
+  years_sequence = list(range(current_year, current_year + duration))
+  my_dict = {}
+  my_key = years_sequence
+
+  for key in my_key:
+    my_dict[key] = ""
+
+  # CHECK IF 30% RULING WILL APPLY
+
+  if age < 30 and eligible == True and master_dpl == True and base_salary >= salary_req_young:
+        Ruling_test = True
+  elif age >= 30 and eligible == True and base_salary >= salary_expert:
+        Ruling_test = True
+  else:
+        Ruling_test = False
+
+  # CALCULATION BASE
+
+  if base_salary > salary_cap:
+    base_salary = salary_cap
+  else:
+    base_salary = base_salary
+
+  keys_list = list(my_dict.keys())  # Get the tuple
+  keys = list(keys_list)  # Convert tuple to list: ['A', 'B', 'C']
+
+  # CHECKING IF THERE IS A BROKEN YEAR AND CALCULATING THESE PARTS #
+  ##################################################################
+
+  if Ruling_test == True:
+    # months_remaining_init != 12 and Ruling_test == True:
+    # if start date not January
+
+    year1 = apply_ruling(base_salary, months_remaining_init, int(keys_list[0]), 0)
+    year5 = apply_ruling(base_salary, months_remaining_final, int(keys_list[4]), 2)
+    my_dict[keys[0]] = year1
+    my_dict[keys[4]] = year5
+
+    # other years -not first and last years
+    other_years_sequence = list(keys_list[1:5])
+
+    for key in other_years_sequence:
+      if key >= 2027:
+        # new 27% ruling
+        my_dict[key] = apply_ruling(base_salary, 12, int(key), 1)
+      else:
+        # apply 30% ruling
+        my_dict[key] = apply_ruling(base_salary, 12, int(key), 1)
+
+    # populating remainder of the dictionary - no ruling
+    for key in keys_list[5:]:
+      my_dict[key] = float(base_salary)
+
+    return my_dict
+
+  else:
+    # not applicable - not fulfilling conditions
+    # populating remainder of the dictionary - no ruling
+    for key in keys_list:
+      my_dict[key] = float(base_salary)
+
+    return my_dict
+
 
 def calc_tax(gross_salary: float) -> float:
 
@@ -56,10 +177,9 @@ def calc_tax(gross_salary: float) -> float:
     print(round(tax, 2))
     return round(tax, 2)
 calc_tax(74400)
-##########################################################################
-# CALCULATOR for ARBEIDSKORTING                                          #
-# RETURNS tax discount (arbeitskorting)                                  #
-##########################################################################
+
+
+# ----- Calculate tax discount (arbeitskorting)
 
 def bereken_arbeidskorting(salaris):
     """
@@ -116,10 +236,7 @@ def bereken_arbeidskorting(salaris):
         return 0.0
 
 
-##########################################################################
-# CALCULATOR for ALGEMENE HEFFINGSKORTING                                #
-# RETURNS tax discount (algemene heffingskorting                         #
-##########################################################################
+# ----- Return tax discount (algemene heffingskorting)
 
 def bereken_algemene_heffingskorting(salaris):
     """
@@ -190,160 +307,6 @@ def return_net_income(my_dict: dict, fixed_costs):
     return df["Netto Disposable"].iloc[0]
 
 
-
-
-
-#-------------------------------------------@@@@@@@@@@@@@@@@@@@@@@@-------------------
-import pandas as pd
-import plotly.graph_objects as go
-import streamlit as st
-import numpy as np
-
-# NOTE: The following functions (calc_tax, bereken_arbeidskorting, etc.)
-# are not defined here. Please ensure they are imported.
-
-def chart_netincome(my_dict: dict, fixed_costs, age, gross_salary, master_dpl):
-    """
-    Generates and displays a stacked bar chart of net income
-    and fixed costs for the first 6 years, based on monthly values, using Plotly.
-
-    Args:
-        my_dict (dict): Dictionary with taxable income by year.
-        fixed_costs (float): The amount of annual fixed costs.
-        age (int): The person's age.
-        gross_salary (float): The gross salary.
-        master_dpl (bool): True if they have a Master's degree, False otherwise.
-    """
-
-    # -----------------------------------------------------------
-    # DATA PREPARATION (UNCHANGED)
-    # -----------------------------------------------------------
-
-    # Convert the dictionary to a Pandas DataFrame
-    df = pd.DataFrame(list(my_dict.items()), columns=["Year", "Taxable Income"])
-
-    # Add fixed costs to the DataFrame
-    df["Fixed Costs"] = fixed_costs
-
-    # Calculate taxes and deductions
-    df["Tax"] = round(-df["Taxable Income"].apply(calc_tax), 0)
-    df["Arbeidskorting"] = round(df["Taxable Income"].apply(bereken_arbeidskorting), 0)
-    df["Algemene Heffingskorting"] = round(df["Taxable Income"].apply(bereken_algemene_heffingskorting), 0)
-    df["Gross Salary"] = gross_salary
-    # Calculate net tax
-    df["Net Tax"] = - (abs(df["Tax"]) - (df["Arbeidskorting"] + df["Algemene Heffingskorting"]))
-
-    # Calculate net disposable income after tax and expenses
-    # df["Netto Disposable"] = df["Taxable Income"] + df["Net Tax"] - df["Fixed Costs"]
-
-    df["Netto Disposable"] = df["Gross Salary"] + df["Net Tax"] - df["Fixed Costs"]
-
-
-
-    df.loc[df["Netto Disposable"] < 0, "Netto Disposable"] = 0
-
-    # -----------------------------------------------------------
-    # CHART PREPARATION AND VISUALIZATION WITH PLOTLY
-    # -----------------------------------------------------------
-
-    # Check eligibility to display the chart
-    eligible = False
-    if age >= 30 and gross_salary >= 66657:
-        eligible = True
-    elif age < 30 and master_dpl and gross_salary >= 50668:
-        eligible = True
-
-    if not eligible:
-        print("You are not eligible to view the chart based on the criteria.")
-        return # Exit the function if not eligible
-
-    # If eligible, prepare the data and create the chart
-    plot_df = df[['Year', 'Netto Disposable', 'Fixed Costs', 'Net Tax']].copy()
-
-    # --- CAMBIO CLAVE: MANTENER SOLO 6 AÑOS Y AÑADIR LAS ETIQUETAS ---
-    plot_df = plot_df.head(6)
-
-    # Define custom labels
-    custom_labels = [
-        "30% 2026",
-        "27% 2027",
-        "27% 2028",
-        "27% 2029",
-        "27% 2030",
-        "37% 2031+",
-        # "Normal taxes 2032+",
-        # "Normal taxes 2033+",
-        # "Normal taxes 2034+",
-        # "Normal taxes 2035+"
-    ]
-
-    # Añadir la nueva columna al DataFrame
-    plot_df['Custom Label'] = custom_labels
-    # -----------------------------------------------------------------
-
-    plot_df['Net Tax'] = plot_df['Net Tax'].abs()
-
-    # Convert to monthly values and ensure a numeric type
-    numeric_cols = ['Netto Disposable', 'Fixed Costs', 'Net Tax']
-    for col in numeric_cols:
-        plot_df[col] = pd.to_numeric(plot_df[col], errors='coerce') / 12
-    plot_df = plot_df.fillna(0)
-
-    # Calculate the total monthly income for annotations
-    plot_df['Total'] = plot_df['Netto Disposable'] + plot_df['Fixed Costs'] + plot_df['Net Tax']
-
-    # Create the stacked bar chart with Plotly
-    fig = go.Figure()
-
-    # Define a clean color palette
-    COLOR_PALETTE = ["#1C6EB6", "#61AFF3","#61AFF3", "#61AFF3", "#61AFF3", "#ADE8F4"]
-
-
-    # Add the bars for each category
-    fig.add_trace(go.Bar(
-        x=plot_df['Custom Label'],
-        y=plot_df['Netto Disposable'],
-        name='Net Disposable Income',
-        marker_color=COLOR_PALETTE,
-        hovertemplate='Net Disposable Income: €%{y:,.0f}<extra></extra>'
-    ))
-
-    # Add annotations for the total value on top of each bar stack
-    annotations = []
-    for year, total in zip(plot_df['Custom Label'], plot_df['Netto Disposable']):
-        annotations.append(
-            dict(
-                x=year,
-                y=total,
-                text=f'€{total:,.0f}',
-                xanchor='center',
-                yanchor='bottom',
-                showarrow=False,
-                font=dict(size=12, color='white'),
-                yshift=10
-            )
-        )
-
-    # Update the layout for a stacked bar style and add annotations
-    fig.update_layout(
-        barmode='stack',
-        title="Evolution of your disposable income",
-        xaxis_title="Taxation per Year",
-        yaxis=dict(
-            showticklabels=False,
-            showgrid=False,
-            showline=False,
-        ),
-        annotations=annotations,
-        hovermode=False
-    )
-
-    # Display the chart in Streamlit
-    st.plotly_chart(fig, use_container_width=True)
-
-
-
-
 def netincome(my_dict: dict, fixed_costs, gross_salary):
 
     # Convert the dictionary to a Pandas DataFrame
@@ -369,7 +332,6 @@ def netincome(my_dict: dict, fixed_costs, gross_salary):
     print(df)
 
     return df["Netto Disposable"].iloc[0]
-
 
 def netto_disposable(my_dict: dict, fixed_costs, gross_salary):
 

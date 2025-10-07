@@ -1,106 +1,133 @@
-# GitHub README
+# 💰 Dutch Salary-to-Reality Calculator
 
-## Document Structure & Sections
+A Streamlit web application that helps professionals in the Netherlands understand their **real disposable income** — from gross salary to what’s actually left in your pocket.
+It combines **taxation rules, housing costs, car expenses, and insurance data** with the official **30% ruling for expats**.
 
-## ⭐Project "What is left: Dutch salary to realiy"
+---
 
-![Project Logo]
+## 🚀 Features
 
-*Our project is about leveraging LLM capabilities together with data retrieval and augumentation, which includes tax calculations to allow expats make better descsisions regarding thier job search & relocation strategies*
+* **Salary Estimation:** Pulls job- and seniority-specific salary data from a SQLite database.
+* **Cost of Living Breakdown:** Includes rent, utilities, car, and health insurance.
+* **Tax Calculation:** Implements Dutch 2025 tax brackets, *arbeidskorting*, and *algemene heffingskorting*.
+* **Expat 30% Ruling Simulation:** Automatically applies the ruling over multiple years.
+* **Interactive Visuals:**
+  * Year-by-year disposable income chart
+  * Pie chart for essential living costs
+* **Chat Assistant (“Ask Harvey”):**
+  A built-in RAG-based assistant that explains your results using Google’s Gemini models through LangChain.
 
-[🚀 Live Demo](https://your-demo-link.com)
+---
 
+## 🧱 Tech Stack
 
-**Challenge**: As an expat applying for a job in the Netherlands one may need to be familiar with certain tax rules, costs of living and other important questions to make the right descision
+| Component         | Technology                        |
+| ----------------- | --------------------------------- |
+| **Frontend**      | [Streamlit](https://streamlit.io) |
+| **Database**      | SQLite                            |
+| **Data Handling** | pandas                            |
+| **Visualization** | Plotly                            |
+| **LLM / RAG**     | LangChain, Google Generative AI   |
+| **Environment**   | Python 3.10+                      |
 
-- Job offer is about gross salary, but what about net disposable income?
-- What is 30% ruling and it's impact on my income long-term?
-- What are my expenses to consdier?
+---
 
+## ⚙️ Installation
 
-Our tool will help to address these challenges and to make better descisions for anyone looking for a job in the Netherlands.
+1. **Clone the repo**
 
+   ```bash
+   git clone https://github.com/<yourusername>/dutch-salary-calculator.git
+   cd dutch-salary-calculator
+   ```
 
-## 1. About The Project
+2. **Create and activate a virtual environment**
 
-![Product Screenshot](images/screenshot.png)
+   ```bash
+   python -m venv venv
+   source venv/bin/activate   # On macOS/Linux
+   venv\Scripts\activate      # On Windows
+   ```
 
-We used different tools to address the challenge and present the solutuon to user in an easy to use UI with interactive elements and LLM interface for humanl like queries. We took following steps:
+3. **Install dependencies**
 
-Obtained data on salaries ranges for specific roles using scraping on two data sources
-Normalzied data and transformed it into JSON objects which can be used later
-Implemented logic for tax & 30% ruling calculation considering various inputs
-Implemented RAG (retrieval augumented generation) by leveraging Google Gemeni Flash 2.5 model with
-augumentation on specific tax caluclation so the model has a good understanding of the context
-Built front-end interface using Streamlit with interactive controls, charts and LLM window
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### User Benefits:
+4. **Create your `.env` file**
 
+   ```bash
+   touch .env
+   ```
 
-✅ Full insights in salary ranges, costs and tax impact
-✅ Making better descisions
-✅ Negotiating a better deal
+   Add your Google API key:
 
+   ```
+   GOOGLE_API_KEY=your_api_key_here
+   ```
 
+5. **Ensure your database is in place**
+   Place `app.db` inside the `/data/` folder or update its path in:
 
-## 2. Built With
+   ```python
+   DB_URI = "sqlite:///data/app.db"
+   ```
 
-Python
-PY/Beautiful soup
-PY/Langchain
-PY/Streamlit
-SQL Lite database
+---
 
-## 3. Getting Started
-This is the make-or-break section. Developers will abandon your project if setup is painful.
+## ▶️ Run the App
 
-## 4. Usage Examples
-Show, don't just tell. Provide concrete, copy-paste examples:
+```bash
+streamlit run calculator.py
+```
 
-## 5. Calculation methodologies
+Then open your browser at **[http://localhost:8501](http://localhost:8501)**.
 
-### Salary brackets
-From 2024: For newcomers who became eligible from 1 January 2024 onward, the tax-exempt benefit now follows a laddered structure over the five-year period:
+---
 
-**30% tax-free for the first 20 months**
-**20% tax-free for the next 20 months**
-**10% tax-free for the final 20 months**
+## 📁 Project Structure
 
-Applicants with a ruling in place before 2024 are grandfathered, meaning they continue to enjoy the full 30% tax-free allowance for up to five years under the old rules.But a reversal is already underway. Following widespread criticism, the government decided to reverse the 30-20-10 structure:
+```
+.
+├── .streamlit/
+│   └── config.toml               # Streamlit theme and layout settings
+│
+├── core/
+│   ├── calculations.py           # Salary & essential costs logic
+│   ├── charts.py                 # Plotly visualizations (bar + pie charts)
+│   ├── database.py               # SQLite data loading helpers
+│   ├── styling.py                # Global Streamlit and chat styling
+│   └── tax.py                    # Dutch tax rules + expat 30% ruling logic
+│
+├── data/
+│   ├── RAG/                      # Knowledge base (.md files) for Ask Harvey
+│   └── app.db                    # Public demo SQLite database (safe to share)
+│
+├── pages/
+│   └── ask_harvey.py             # Gemini-powered RAG chatbot page
+│
+├── .env                          # Local API keys
+├── .gitignore                    # Ignore caches, envs, secrets, etc.
+├── calculator.py                 # Main Streamlit entry point
+├── README.md
+└── requirements.txt              # Dependencies list
 
-From 1 January 2025 through 31 December 2026, all eligible expats (including new ones) will receive a **flat 30% tax-free allowance**, without scaling. Then, starting 1 January 2027, the allowance will be permanently **adjusted to a flat 27%**, with updated salary thresholds.
+```
 
-The 2025 Tax Plan, including the amendments, still requires approval from the Dutch Parliament. Should the proposals be adopted, these changes may have implications for certain employees.
+---
 
-### Maximum allowable salary for 30% ruling
+## 🧠 Ask Harvey — The Chat Assistant
 
-30% facility applies to amounts up to €233,000
-The tax-free allowance applies to salary amounts of up to €233,000 a year (amount for 2024).
+“Ask Harvey” uses **LangChain + Google Generative AI** to provide clear, factual explanations of your results.
+It retrieves contextual info (tax, rent, etc.) from Markdown documents and summarizes them before answering.
 
-https://www.belastingdienst.nl/wps/wcm/connect/en/individuals/content/coming-to-work-in-the-netherlands-30-percent-facility
+> Harvey never recalculates numbers — he *explains* them.
 
-### Expertise Requirements
+---
 
-To qualify for the 30%-ruling, an incoming employee must possess specific expertise that is either not available or scarcely available in the Dutch labor market. This expertise requirement is primarily determined based on a salary norm.
+## 🧩 Environment Variables
 
-Your specific expertise is hardly found on the labour market in the Netherlands. You have a specific expertise if your annual salary, not including the tax-free allowance in the Netherlands, is more than the annual salary in the table.
-
-Table: specific expertise
-Year	Your annual salary is more than
-**2025	€46,660**
-2024	€46,107
-2023	€41,954
-
-You are younger than 30, and you have a Dutch academic master's degree
-Or you have obtained an equivalent title in another country. You have a specific expertise if your annual salary, not including the tax-free allowance in the Netherlands, is more than the annual salary in the table.
-Table: specific expertise for people younger than 30
-Year	Your annual salary is more than
-**2025	€35,468**
-2024	€35,048
-2023	€31,891
-
-https://www.belastingdienst.nl/wps/wcm/connect/en/individuals/content/coming-to-work-in-the-netherlands-30-percent-facility
-
-## Acknowledgments
-
-Special thanks to: Juan, Jen and other teaches from Le Wagon who helped us during the bootcamp
+| Variable         | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `GOOGLE_API_KEY` | Required for the Gemini-powered chat assistant |

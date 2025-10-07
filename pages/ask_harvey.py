@@ -1,12 +1,10 @@
-# -------------------- LIBRARIES --------------------
+# ---------- Imports and libraries --------- #
 
 import streamlit as st
 from pathlib import Path
 import asyncio
 import os
 import re
-
-# -------------------- LLM + RAG --------------------
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.prompts import PromptTemplate
@@ -14,8 +12,12 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.vectorstores import InMemoryVectorStore
-from typing_extensions import List, TypedDict
+from typing_extensions import TypedDict
 from langgraph.graph import START, StateGraph
+from core.styling import apply_chat_styling
+
+
+# ---------- Environment setup ---------- #
 
 load_dotenv()
 
@@ -30,7 +32,8 @@ except ImportError:
     st.sidebar.error(":warning: Could not import init_chat_model. Install LangChain + Google GenAI.")
     HAS_LLM = False
 
-# -------------------- LLM LOADER --------------------
+
+# ---------- LLM and Vector initialization --------- #
 
 @st.cache_resource(show_spinner=True)
 def load_llm():
@@ -77,9 +80,8 @@ def load_vector_store():
 
 vector_store = load_vector_store()
 
-# -------------------- RAG CHAIN --------------------
 
-# # --- System Prompt and Inteaction ---
+# ---------- Prompt and State definition --------- #
 
 if HAS_LLM and llm and vector_store:
     rag_prompt = ChatPromptTemplate.from_messages([
@@ -113,24 +115,29 @@ if HAS_LLM and llm and vector_store:
         answer: str
 
 
-# # --- Retrieval Pipeline ---
+# ---------- RAG helper functions --------- #
 
-# Step 1: Clean Markdown text (avoid mentions in the answer)
+# 1. Text cleaning
 def clean_text(text: str) -> str:
     """Remove markdown headers, formatting, and excessive whitespace."""
-    # Remove markdown headers like ## Something
-    text = re.sub(r'^#+ .*$', '', text, flags=re.MULTILINE)
-    # Remove bold/italic markdown markers
-    text = re.sub(r'[*_`]', '', text)
-    # Collapse multiple newlines
-    text = re.sub(r'\n{2,}', '\n', text)
+    text = re.sub(r'^#+ .*$', '', text, flags=re.MULTILINE) # Remove markdown headers
+    text = re.sub(r'[*_`]', '', text) # Remove bold/italic markdown markers
+    text = re.sub(r'\n{2,}', '\n', text) # Collapse multiple newlines
     return text.strip()
 
-# Step 2: Run similarity search with metadata filters
+# 2. Document retrieval
 def retrieve_docs(query, vector_store, filters=None, k=3):
     """
-    Retrieve relevant docs with optional metadata filtering.
-    Defaults to top-3.
+    Retrieve the top-k most relevant documents for a given query.
+
+    Args:
+        query (str): User question or text query.
+        vector_store: The in-memory vector store.
+        filters (dict, optional): Metadata filters.
+        k (int, optional): Number of documents to retrieve.
+
+    Returns:
+        list: List of LangChain document objects.
     """
     if filters:
         docs = vector_store.similarity_search(query, k=k, filter=filters)
@@ -138,30 +145,31 @@ def retrieve_docs(query, vector_store, filters=None, k=3):
         docs = vector_store.similarity_search(query, k=k)
     return docs
 
-# Step 2: Compress docs into short summaries
+
+# 3. Document compression
 def compress_docs(docs, llm):
+    """
+    Summarize retrieved documents into a concise paragraph.
+
+    Args:
+        docs (list): Retrieved documents.
+        llm: The loaded chat model.
+
+    Returns:
+        str: A summarized version of the combined documents.
+    """
     combined_text = "\n\n".join([clean_text(doc.page_content) for doc in docs])
     compression_prompt = PromptTemplate.from_template(
         "Summarize the following text into 4-5 sentences in plain language. "
         "Do not include section titles, bullet points, or references. "
         "Keep only the essential rules, thresholds, and key numbers.\n\n{text}"
     )
+
     summary = llm.invoke(compression_prompt.format(text=combined_text))
     return summary.content if hasattr(summary, "content") else str(summary)
 
-# Step 3: Prepare context for the LLM
-def prepare_context(query, vector_store, llm, filters=None):
-    docs = retrieve_docs(query, vector_store, filters=filters, k=3)
-    if not docs:
-        return "" # Specific for handling error with empty docs
-    compressed = compress_docs(docs, llm)
-    sources = []
-    for doc in docs:
-        filename = Path(doc.metadata.get("source", "unknown")).name
-        sources.append(SOURCE_LABELS.get(filename, filename))
-    return compressed, sources
 
-# Labels are not actively used, but rather kept for tracking and debugging
+# 4. Context preparation
 SOURCE_LABELS = {
     "health_insurance.md": "Rijksoverheid",
     "rental_prices.md": "HousingAnywhere, RentHunter",
@@ -172,8 +180,45 @@ SOURCE_LABELS = {
     "utilities.md": "Nibud"
 }
 
-# Step 4: Retrieve context and user input
+
+def prepare_context(query, vector_store, llm, filters=None):
+    """
+    Retrieve and compress relevant context for a user query.
+
+    Args:
+        query (str): The user’s question.
+        vector_store: The in-memory vector store.
+        llm: The loaded language model.
+        filters (dict, optional): Metadata filters.
+
+    Returns:
+        tuple(str, list): Compressed text summary and list of source labels.
+    """
+    docs = retrieve_docs(query, vector_store, filters=filters, k=3)
+    if not docs:
+        return "" # Specific for handling error with empty docs
+    compressed = compress_docs(docs, llm)
+    sources = []
+    for doc in docs:
+        filename = Path(doc.metadata.get("source", "unknown")).name
+        sources.append(SOURCE_LABELS.get(filename, filename))
+    return compressed, sources
+
+# 5. Answer generation
 def generate(state: State):
+    """
+    Execute the full RAG generation process:
+    1. Retrieve relevant documents.
+    2. Summarize them.
+    3. Combine with user profile.
+    4. Invoke LLM for explanation.
+
+    Args:
+        state (State): Dictionary containing the user question.
+
+    Returns:
+        dict: Generated answer and the list of sources used.
+    """
     # Retrieve compressed context (summaries of top docs)
     context, sources_used = prepare_context(state["question"], vector_store, llm)
 
@@ -211,12 +256,23 @@ def generate(state: State):
         "sources": sorted(set(sources_used)) # Not showing to the user
     }
 
-# Step 5: Create question-answer flowchart
+
+# 6. Chain compilation and question-answer flowchart
 graph_builder = StateGraph(State).add_sequence([generate])
 graph_builder.add_edge(START, "generate")
 rag_chain = graph_builder.compile()
 
+
 def rag_answer(question: str):
+    """
+    Public API for answering user queries via RAG.
+
+    Args:
+        question (str): User question.
+
+    Returns:
+        dict: Contains the model's answer (and optionally sources).
+    """
     if not rag_chain:
         return {"answer": "⚠️ RAG not available."}
     try:
@@ -230,26 +286,32 @@ def rag_answer(question: str):
         return {"answer": "⚠️ Something went wrong while retrieving information. Please try again."}
 
 
-# -------------------- PAGE 2: LLM CHAT --------------------
-with st.container():
-    st.title("Ask Harvey 👨‍⚖️")
-    st.info("Please note: always consult the Netherlands Tax and Customs Administration (Belastingdienst) for all updates regarding taxation.")
+# ---------- Page setup and UI --------- #
 
-    faq = [
-        "Explain the 30% ruling in simple words.",
-        "How's the housing market in the Netherlands?",
-        "What are the costs of owning a car?"
-    ]
-    st.write(":bulb: Suggested questions:")
-    for q in faq:
-        if st.button(q):
-            with st.spinner("Connecting the dots..."):
-                result = rag_answer(q)
-            st.success(result["answer"])
-            # Optional: print("Retrieved sources:", result.get("sources"))
+apply_chat_styling()
 
-    user_input = st.text_input("Or type your own question:")
-    if user_input:
+# 1. Title and description
+st.title("Ask Harvey 👨‍⚖️")
+st.info("Please note: always consult the Netherlands Tax and Customs Administration (Belastingdienst) for all updates regarding taxation.")
+
+# 2. Suggested questions
+faq = [
+    "Explain the 30% ruling in simple words.",
+    "How's the housing market in the Netherlands?",
+    "What are the costs of owning a car?"
+]
+
+st.write(":bulb: Suggested questions:")
+
+for q in faq:
+    if st.button(q):
         with st.spinner("Connecting the dots..."):
-            result = rag_answer(user_input)
+            result = rag_answer(q)
         st.success(result["answer"])
+
+# 3. User input
+user_input = st.text_input("Or type your own question:")
+if user_input:
+    with st.spinner("Connecting the dots..."):
+        result = rag_answer(user_input)
+    st.success(result["answer"])
