@@ -1,33 +1,20 @@
-# Core app framework
-streamlit
+# --- Core ---
+streamlit>=1.37.0
+pandas>=2.2.0
+plotly>=5.22.0
+python-dotenv>=1.0.1
+sqlite3-binary ; python_version < "3.12"
 
-# Data handling
-pandas
-numpy
+# --- LangChain ecosystem (for Ask Harvey) ---
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-google-genai>=1.0.3
+langchain-text-splitters>=0.3.0
+langgraph>=0.2.4
 
-# Database
-sqlite-utils   # (sqlite3 is stdlib, but this gives sqlite:/// URI support)
+# --- Google + Embeddings ---
+google-generativeai>=0.8.0
 
-# Visualization
-matplotlib
-seaborn
-plotly
-
-# LangChain + AI stack
-langchain
-langchain-core
-langchain-community
-langchain-google-genai
-langchain-text-splitters
-langgraph
-
-# Environment variables
-python-dotenv
-
-# Typing extensions
-typing_extensions
-
-# Other
-pydantic
-playwright
-unstructured
+# --- Typing and Utilities ---
+typing-extensions>=4.12.0
