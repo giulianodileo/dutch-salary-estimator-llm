@@ -21,7 +21,12 @@ from core.styling import apply_chat_styling
 
 load_dotenv()
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_API_KEY = (
+        st.secrets.get("GOOGLE_API_KEY")
+    if "GOOGLE_API_KEY" in st.secrets
+    else os.getenv("GOOGLE_API_KEY")
+)
+
 if not GOOGLE_API_KEY:
     st.sidebar.error("⚠️ GOOGLE_API_KEY not found. Please add it to your .env file.")
 
