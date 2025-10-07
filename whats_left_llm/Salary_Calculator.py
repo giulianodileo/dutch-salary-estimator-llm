@@ -278,21 +278,20 @@ def expat_ruling_calc(age: int,
 
     # 1) Initiate key paramenters to be eligible for the tax ruling:
     # - Maximum gross salary: 233,000€
-    salary_cap = 233000
+    salary_cap = 246000
     # - Minimum required salary for under 30s: 35,468€
     salary_req_young = 35468
     # - Minimum required salary for over 30s: 46,660€
     salary_expert = 46660
     eligible = False
 
-    if age >= 30 and base_salary >= 66657:
+    if age >= 30 and base_salary >= salary_req_young:
         eligible = True
 
-    elif age < 30 and master_dpl and base_salary >= 50668:
+    elif age < 30 and master_dpl and base_salary >= salary_expert and base_salary < salary_cap:
         eligible = True
 
-    # 2) DETERMINE MONTHS REMAINING IN FIRST YEAd
-    # date_string = "2024-12-25"
+    # 2) Define the starting date from which the tax rule starts to apply
 
     start_date = datetime.strptime(date_string, "%Y-%m-%d")
 
@@ -372,9 +371,7 @@ def expat_ruling_calc(age: int,
 
         return my_dict
 
-# -------------------- CHARTS --------------------
-
-# Pie chart function
+# ----- Charts to display salary, costs, and taxation
 
 def render_pie_chart_percent_only(labels: List[str], values: List[float]):
     """
@@ -386,7 +383,7 @@ def render_pie_chart_percent_only(labels: List[str], values: List[float]):
     - title: chart title string
     """
 
-    # Define the new color palette from your request
+    # Color palette for pie chart
     COLOR_PALETTE = [
         "#48CAE4",
         "#00B4D8",
@@ -420,16 +417,9 @@ def render_pie_chart_percent_only(labels: List[str], values: List[float]):
         showlegend=True,
         height=280,
     )
-    # --- CAMBIO CLAVE: USAR COLUMNAS PARA REDUCIR EL TAMAÑO ---
-    # Crea tres columnas para centrar el gráfico.
-    # La del medio tendrá el gráfico y las otras dos serán espacios en blanco.
-    # col1, col2, col3 = st.columns([0.1, 2, 0.1])
 
-    # with col2:
-    #     st.plotly_chart(fig, use_container_width=True) # Se mantiene en True para que llene su columna
     st.plotly_chart(fig, use_container_width=True)
 
-#
 
 def calc_tax(gross_salary: float) -> float:
 
@@ -1522,16 +1512,3 @@ if submitted:
         st.error(f"Unexpected error: {e}")
 else:
     st.info("Fill in the fields and press **What's Left**.")
-
-
-# PALETTE = {
-#     "navy":   "#03045E",
-#     "blue9":  "#023E8A",
-#     "blue7":  "#0077B6",
-#     "blue6":  "#0096C7",
-#     "blue5":  "#00B4D8",
-#     "blue4":  "#48CAE4",
-#     "blue3":  "#90E0EF",
-#     "blue2":  "#ADE8F4",
-#     "blue1":  "#CAF0F8",
-# }
